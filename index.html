@@ -494,25 +494,22 @@ const tgt3 = new THREE.Object3D(); tgt3.position.copy(W3); const spot3 = spot(P3
 
 const about = new Panel(184);
 about.layer(0, (ctx, w, h) => glass(ctx, w, h));
-about.layer(8, (ctx, w) => { heading(ctx, w, 'Centre stage · The designer', 'M.B. Stiles'); font(ctx, 'body', 10); ctx.fillStyle = COL.dim;
-  wrap(ctx, 'I design mechanisms and build the tools to analyse them: kinematic solvers, generated CAD and interactive visualisations.', 14, 64, w - 28, 13.5); });
-const chips = ['Kinematics', 'Python CAD', 'Three.js', '3D printing', 'Simulation', 'Data viz'];
-const chipRects = (() => { const c = document.createElement('canvas').getContext('2d'); font(c, 'label', 9.5); let x = 14, y = 124; const out = [];
-  for (const t of chips){ const w = c.measureText(t.toUpperCase()).width + 16; if (x + w > PW - 14){ x = 14; y += 24; } out.push({t, x, y, w, h:18}); x += w + 6; } return out; })();
+about.layer(8, (ctx, w) => { heading(ctx, w, 'R&D · Product Development', 'M.B. Stiles'); font(ctx, 'body', 10); ctx.fillStyle = COL.dim;
+  wrap(ctx, 'I develop mechanical and electromechanical concepts through CAD assemblies, FEA, rapid prototyping, manufacturing insight and custom software tools.', 14, 64, w - 28, 13.5); });
+const chips = ['CAD assemblies', 'FEA', 'Prototyping', 'Manufacturing', 'Mechatronics', 'Software'];
+const chipRects = (() => { const c = document.createElement('canvas').getContext('2d'); font(c, 'label', 9.5); let x = 14, y = 121; const out = [];
+  for (const t of chips){ const w = c.measureText(t.toUpperCase()).width + 16; if (x + w > PW - 14){ x = 14; y += 22; } out.push({t, x, y, w, h:18}); x += w + 6; } return out; })();
 about.layer(16, (ctx) => { lift(ctx, true); chipRects.forEach(r => { ctx.fillStyle = COL.tile; rr(ctx, r.x, r.y, r.w, r.h, 9); ctx.fill(); }); lift(ctx, false); });
 about.layer(24, (ctx) => chipRects.forEach(r => { ctx.strokeStyle = 'rgba(242,160,74,.7)'; ctx.lineWidth = .7; rr(ctx, r.x + .35, r.y + .35, r.w - .7, r.h - .7, 9); ctx.stroke();
   font(ctx, 'label', 9.5); ctx.fillStyle = COL.ink; ctx.fillText(r.t.toUpperCase(), r.x + 8, r.y + 12.5); }));
 
-// skills chart: bars are real blocks whose height off the panel encodes the value
-const skills = [['CAD & modelling', .9], ['Kinematics', .85], ['Python', .8], ['3D printing', .75], ['Three.js / WebGL', .7], ['FEA', .45]];
+// The equal-length bars present areas of practice without unsupported proficiency scores.
+const skills = [['CAD assemblies', .82], ['FEA / analysis', .82], ['Prototyping', .82], ['Mechatronics', .82], ['Manufacturing', .82], ['Software / code', .82]];
 const skillPanel = new Panel(206);
 const sk = { L:104, R:PW - 40, T:66, row:22 };
 skillPanel.layer(0, (ctx, w, h) => glass(ctx, w, h));
-skillPanel.layer(6, (ctx, w) => { ctx.strokeStyle = 'rgba(233,237,235,.12)'; ctx.lineWidth = .5;
-  for (const f of [0, .25, .5, .75, 1]){ const x = sk.L + f * (sk.R - sk.L); ctx.beginPath(); ctx.moveTo(x, sk.T - 6); ctx.lineTo(x, sk.T + skills.length * sk.row - 4); ctx.stroke(); } });
-skillPanel.layer(12, (ctx, w) => { heading(ctx, w, 'Self-rated · placeholder values', 'Skills');
-  skills.forEach(([n, v], i) => { const y = sk.T + i * sk.row + 6; fit(ctx, 'body', n, 9.5, sk.L - 22); ctx.fillStyle = COL.ink; ctx.fillText(n, 14, y + 3);
-    font(ctx, 'mono', 8.5); ctx.fillStyle = COL.dim; ctx.textAlign = 'right'; ctx.fillText(Math.round(v * 10) + '/10', PW - 12, y + 3); ctx.textAlign = 'left'; }); });
+skillPanel.layer(12, (ctx, w) => { heading(ctx, w, 'Engineering · Development', 'Skills');
+  skills.forEach(([n], i) => { const y = sk.T + i * sk.row + 6; fit(ctx, 'body', n, 9.5, sk.L - 22); ctx.fillStyle = COL.ink; ctx.fillText(n, 14, y + 3); }); });
 const skillBars = [];
 skills.forEach(([n, v], i) => {
   const len = v * (sk.R - sk.L), y = sk.T + i * sk.row + 3, [lx, ly] = skillPanel.at(sk.L, y), dz = 6 + v * 22;
@@ -524,8 +521,8 @@ skillPanel.tick = () => skillBars.forEach(m => { m.scale.z = Math.max(.01, skill
 
 const contact = new Panel(92);
 contact.layer(0, (ctx, w, h) => glass(ctx, w, h));
-contact.layer(8, (ctx, w) => { lift(ctx, true); font(ctx, 'label', 8.5); ctx.fillStyle = COL.amber; spaced(ctx, 'CONTACT', 14, 20, 1);
-  font(ctx, 'mono', 10.5); ctx.fillStyle = COL.ink; ctx.fillText('you@example.com', 14, 46); ctx.fillStyle = COL.dim; ctx.fillText('github.com/yourname', 14, 66); lift(ctx, false); });
+contact.layer(8, (ctx, w) => { lift(ctx, true); font(ctx, 'label', 8.5); ctx.fillStyle = COL.amber; spaced(ctx, 'ENGINEERING CONTACT', 14, 20, 1);
+  font(ctx, 'mono', 10.5); ctx.fillStyle = COL.ink; ctx.fillText('mbstilesengineering@gmail.com', 14, 46); ctx.fillStyle = COL.dim; ctx.fillText('github.com/mbstilesengineering', 14, 66); lift(ctx, false); });
 
 const exAbout = makeExhibit({ id:'about', name:'About', x:P3x, center:W3, R:380, yaw:0, ped:ped3, spot:spot3, hitR:400,
   titleText:'M.B. Stiles', titleSub:'portfolio · mechanisms + simulation', titleY:ped3.top + 440, panels:[about, skillPanel, contact] });

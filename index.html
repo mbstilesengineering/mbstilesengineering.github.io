@@ -519,10 +519,10 @@ skills.forEach(([n, v], i) => {
 });
 skillPanel.tick = () => skillBars.forEach(m => { m.scale.z = Math.max(.01, skillPanel.mult); });
 
-const contact = new Panel(92);
+const contact = new Panel(112);
 contact.layer(0, (ctx, w, h) => glass(ctx, w, h));
 contact.layer(8, (ctx, w) => { lift(ctx, true); font(ctx, 'label', 8.5); ctx.fillStyle = COL.amber; spaced(ctx, 'ENGINEERING CONTACT', 14, 20, 1);
-  font(ctx, 'mono', 10.5); ctx.fillStyle = COL.ink; ctx.fillText('mbstilesengineering@gmail.com', 14, 46); ctx.fillStyle = COL.dim; ctx.fillText('github.com/mbstilesengineering', 14, 66); lift(ctx, false); });
+  font(ctx, 'mono', 10.5); ctx.fillStyle = COL.ink; ctx.fillText('mbstilesengineering@gmail.com', 14, 46); ctx.fillStyle = COL.dim; ctx.fillText('github.com/mbstilesengineering', 14, 66); ctx.fillText('designeng.org', 14, 86); lift(ctx, false); });
 
 const exAbout = makeExhibit({ id:'about', name:'About', x:P3x, center:W3, R:380, yaw:0, ped:ped3, spot:spot3, hitR:400,
   titleText:'M.B. Stiles', titleSub:'portfolio · mechanisms + simulation', titleY:ped3.top + 440, panels:[about, skillPanel, contact] });
@@ -3194,7 +3194,7 @@ let last = performance.now(), time = 0; const tmp = new THREE.Vector3(), q = new
 // closes up and the camera eases back in). After every second model the title itself is shown for 5 s.
 // Any input ends the tour where it is (the model is put back together, zoom and spin reset).
 const TOUR = { idle:0, on:false, phase:'hall', t:0, cards:0, count:0, last:null, prevA:null, exploded:null };
-const IDLE_HALL = 10, IDLE_INSIDE = 20, MODEL_S = 10, TITLE_S = 5, EX0 = 3, EX1 = 6;
+const IDLE_HALL = 10, IDLE_INSIDE = 20, MODEL_S = 10, TITLE_S = 10, EX0 = 3, EX1 = 6;
 const tourUp = new THREE.Vector3(0, 1, 0), smooth = u => { u = Math.max(0, Math.min(1, u)); return u * u * (3 - 2 * u); };
 function tourExplode(on){
   const b = TOUR.exploded || (focus && focus.xb);

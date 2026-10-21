@@ -3189,53 +3189,72 @@ $('loading').hidden = true;
 let last = performance.now(), time = 0; const tmp = new THREE.Vector3(), q = new THREE.Quaternion();
 
 /* ================= idle tour: after 10 s without input, show the exhibits by themselves ================= */
-// Pattern: model (10 s: focus, cards cycle, explode at 3 s for 3 s) → hall 10 s → next model → hall 10 s → title (5 s, cards) →
-// hall 5 s → next model … Any input ends the tour where it is (an exploded model is put back together).
-const TOUR = { idle:0, on:false, steps:[], i:0, t:0, next:0, exploded:null, models:0 };
-const IDLE_HALL = 10, IDLE_INSIDE = 20;                                   // a visitor sitting on a model gets longer before the tour takes over
-function tourBuild(){
-  const s = [];
-  const model = e => { s.push({ kind:'model', e, dur:10 }); s.push({ kind:'hall', dur:10 }); };
-  for (let k = 0; k < ringEx.length; k++){
-    model(ringEx[(TOUR.models + k) % ringEx.length]);
-    if (k % 2 === 1){ s.push({ kind:'title', e:exAbout, dur:5 }); s.push({ kind:'hall', dur:5 }); }
-  }
-  return s;
-}
+// The hall keeps turning; whichever model swings round to the front of the gold title is focused for 10 s (cards cycle
+// and end back on its title card; at 3 s the camera eases out while the model explodes and turns a full 360°, then it
+// closes up and the camera eases back in). After every second model the title itself is shown for 5 s.
+// Any input ends the tour where it is (the model is put back together, zoom and spin reset).
+const TOUR = { idle:0, on:false, phase:'hall', t:0, cards:0, count:0, last:null, prevA:null, exploded:null };
+const IDLE_HALL = 10, IDLE_INSIDE = 20, MODEL_S = 10, TITLE_S = 5, EX0 = 3, EX1 = 6;
+const tourUp = new THREE.Vector3(0, 1, 0), smooth = u => { u = Math.max(0, Math.min(1, u)); return u * u * (3 - 2 * u); };
 function tourExplode(on){
   const b = TOUR.exploded || (focus && focus.xb);
   if (!b) return;
   b.target = on ? 1 : 0; TOUR.exploded = on ? b : null;
 }
-function tourEnter(st){
-  TOUR.t = 0; TOUR.cards = 0;
-  if (st.kind === 'hall'){ tourExplode(false); if (focus || browse) browseTo(null); return; }
-  go(st.e);
-  if (st.kind === 'model') TOUR.models = (ringEx.indexOf(st.e) + 1) % ringEx.length;
+function tourSettle(e){ if (!e) return; e.zoom = 1; e.resetting = true; }
+function tourPhase(p, e){
+  TOUR.phase = p; TOUR.t = 0; TOUR.cards = 0;
+  if (p === 'hall' || p === 'hallT'){ tourExplode(false); tourSettle(focus); if (focus || browse) browseTo(null); TOUR.prevA = null; return; }
+  go(e); if (p === 'model'){ TOUR.last = e; TOUR.count++; }
 }
-function tourCycleCards(st){
-  // spread the card changes over the visit: each card comes to the front once, the first card starts it
+function tourCycleCards(dur){
+  // n + 1 shuffles spread over the visit: every card comes to the front once and the first (title) card ends on top
   const e = focus; if (!e || !e.deck || e.deck.length < 2 || e.mode !== 'deck') return;
-  const n = e.deck.length, t0 = st.kind === 'model' ? 1.2 : .8, span = st.dur - t0 - .8, want = Math.min(n - 1, Math.floor((TOUR.t - t0) / (span / (n - 1)) + 1e-6));
+  const n = e.deck.length, t0 = dur > 6 ? 1.0 : .6, gap = (dur - t0 - .9) / n, want = Math.min(n, Math.floor((TOUR.t - t0) / gap));
   while (TOUR.cards < want){ e.deck.push(e.deck.shift()); TOUR.cards++; layout(); }
+}
+function frontCrossing_unused(){
+  // the model that has just passed the front of the ring (angle 0, in front of the title) as the hall turns
+  const a = ringEx.map(e => wrapA(ringA + e.slot * STEP)); let hit = null;
+  if (TOUR.prevA) ringEx.forEach((e, i) => { if (e !== TOUR.last && TOUR.prevA[i] < 0 && a[i] >= 0 && a[i] < STEP / 2) hit = e; });
+  TOUR.prevA = a; return hit;
 }
 function tourTick(dt){
   if (!TOUR.on){
     TOUR.idle += dt;
-    if (TOUR.idle >= ((focus || browse) ? IDLE_INSIDE : IDLE_HALL) && !ptrs.size){ TOUR.on = true; TOUR.steps = tourBuild(); TOUR.i = 0; tourEnter(TOUR.steps[0]); }
+    if (TOUR.idle >= ((focus || browse) ? IDLE_INSIDE : IDLE_HALL) && !ptrs.size){ TOUR.on = true; TOUR.last = null; tourPhase('hall'); }
     return;
   }
-  const st = TOUR.steps[TOUR.i]; TOUR.t += dt;
-  if (st.kind !== 'hall'){
-    tourCycleCards(st);
-    if (st.kind === 'model'){ if (TOUR.t >= 3 && TOUR.t < 6 && !TOUR.exploded) tourExplode(true); if (TOUR.t >= 6 && TOUR.exploded) tourExplode(false); }
+  TOUR.t += dt;
+  if (TOUR.phase === 'hall'){
+    // after every second model the title comes next, 8 s into the hall view; its gap then parks in front, so the next
+    // model swings round about 5 s after the title, as it would anyway
+    if (TOUR.count > 0 && TOUR.count % 2 === 0 && TOUR.lastTitle !== TOUR.count){ if (TOUR.t >= 8){ TOUR.lastTitle = TOUR.count; tourPhase('title', exAbout); } return; }
+    // otherwise wait for the next model in ring order to reach the front of the title (the ring turns +, so that is slot - 1)
+    const n = ringEx.length, nx = TOUR.last ? ringEx.find(e => e.slot === (TOUR.last.slot - 1 + n) % n) : null;
+    const cand = nx ? [nx] : ringEx, hit = TOUR.t > 1 ? cand.find(e => { const a = wrapA(ringA + e.slot * STEP); return a >= -.02 && a < STEP / 2; }) : null;
+    if (hit) tourPhase('model', hit);
+    else if (TOUR.t > 25) tourPhase('model', nx || ringEx[0]);              // ring not turning (reduced motion): step on anyway
+    return;
   }
-  if (TOUR.t >= st.dur){ TOUR.i++; if (TOUR.i >= TOUR.steps.length){ TOUR.steps = tourBuild(); TOUR.i = 0; } tourEnter(TOUR.steps[TOUR.i]); }
+  if (TOUR.phase === 'title'){ tourCycleCards(TITLE_S); if (TOUR.t >= TITLE_S) tourPhase('hall'); return; }
+  // model visit
+  tourCycleCards(MODEL_S);
+  const e = focus;
+  if (e){
+    if (TOUR.t >= EX0 && TOUR.t < EX1 && !TOUR.exploded && !TOUR.didEx){ tourExplode(true); TOUR.didEx = true; }
+    if (TOUR.t >= EX1 && TOUR.exploded) tourExplode(false);
+    // zoom out with the explode, back in once it has closed; one full turn over the 3 s
+    const out = smooth((TOUR.t - EX0) / .8) * (1 - smooth((TOUR.t - EX1 - .2) / .9));
+    e.zoom = 1 + .55 * out;
+    if (TOUR.t >= EX0 && TOUR.t <= EX1 + .05){ e.resetting = false; e.user.setFromAxisAngle(tourUp, 2 * Math.PI * smooth((TOUR.t - EX0) / (EX1 - EX0))); }
+  }
+  if (TOUR.t >= MODEL_S){ TOUR.didEx = false; tourPhase('hall'); }
 }
 function tourWake(){
   TOUR.idle = 0;
   if (!TOUR.on) return;
-  TOUR.on = false; tourExplode(false);                                  // stay on whatever is showing, but put the model back together
+  TOUR.on = false; TOUR.didEx = false; tourExplode(false); tourSettle(focus);   // stay on whatever is showing, put back together
 }
 for (const ev of ['pointerdown', 'pointermove', 'wheel', 'keydown', 'touchstart']) addEventListener(ev, tourWake, { capture:true, passive:true });
 

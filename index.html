@@ -522,7 +522,7 @@ skillPanel.tick = () => skillBars.forEach(m => { m.scale.z = Math.max(.01, skill
 const contact = new Panel(112);
 contact.layer(0, (ctx, w, h) => glass(ctx, w, h));
 contact.layer(8, (ctx, w) => { lift(ctx, true); font(ctx, 'label', 8.5); ctx.fillStyle = COL.amber; spaced(ctx, 'ENGINEERING CONTACT', 14, 20, 1);
-  font(ctx, 'mono', 10.5); ctx.fillStyle = COL.ink; ctx.fillText('mbstilesengineering@gmail.com', 14, 46); ctx.fillStyle = COL.dim; ctx.fillText('github.com/mbstilesengineering', 14, 66); ctx.fillText('designeng.org', 14, 86); lift(ctx, false); });
+  font(ctx, 'mono', 10.5); ctx.fillStyle = COL.ink; ctx.fillText('designeng.org', 14, 46); ctx.fillText('mbstilesengineering@gmail.com', 14, 66); ctx.fillStyle = COL.dim; ctx.fillText('github.com/mbstilesengineering', 14, 86); lift(ctx, false); });
 
 const exAbout = makeExhibit({ id:'about', name:'About', x:P3x, center:W3, R:380, yaw:0, ped:ped3, spot:spot3, hitR:400,
   titleText:'M.B. Stiles', titleSub:'portfolio · mechanisms + simulation', titleY:ped3.top + 440, panels:[about, skillPanel, contact] });

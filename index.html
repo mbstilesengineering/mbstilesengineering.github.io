@@ -3187,8 +3187,61 @@ function resize(){
 new ResizeObserver(resize).observe(stage); resize(); go(null);
 $('loading').hidden = true;
 let last = performance.now(), time = 0; const tmp = new THREE.Vector3(), q = new THREE.Quaternion();
+
+/* ================= idle tour: after 10 s without input, show the exhibits by themselves ================= */
+// Pattern: model (10 s: focus, cards cycle, explode at 3 s for 3 s) → hall 10 s → next model → hall 10 s → title (5 s, cards) →
+// hall 5 s → next model … Any input ends the tour where it is (an exploded model is put back together).
+const TOUR = { idle:0, on:false, steps:[], i:0, t:0, next:0, exploded:null, models:0 };
+const IDLE_HALL = 10, IDLE_INSIDE = 20;                                   // a visitor sitting on a model gets longer before the tour takes over
+function tourBuild(){
+  const s = [];
+  const model = e => { s.push({ kind:'model', e, dur:10 }); s.push({ kind:'hall', dur:10 }); };
+  for (let k = 0; k < ringEx.length; k++){
+    model(ringEx[(TOUR.models + k) % ringEx.length]);
+    if (k % 2 === 1){ s.push({ kind:'title', e:exAbout, dur:5 }); s.push({ kind:'hall', dur:5 }); }
+  }
+  return s;
+}
+function tourExplode(on){
+  const b = TOUR.exploded || (focus && focus.xb);
+  if (!b) return;
+  b.target = on ? 1 : 0; TOUR.exploded = on ? b : null;
+}
+function tourEnter(st){
+  TOUR.t = 0; TOUR.cards = 0;
+  if (st.kind === 'hall'){ tourExplode(false); if (focus || browse) browseTo(null); return; }
+  go(st.e);
+  if (st.kind === 'model') TOUR.models = (ringEx.indexOf(st.e) + 1) % ringEx.length;
+}
+function tourCycleCards(st){
+  // spread the card changes over the visit: each card comes to the front once, the first card starts it
+  const e = focus; if (!e || !e.deck || e.deck.length < 2 || e.mode !== 'deck') return;
+  const n = e.deck.length, t0 = st.kind === 'model' ? 1.2 : .8, span = st.dur - t0 - .8, want = Math.min(n - 1, Math.floor((TOUR.t - t0) / (span / (n - 1)) + 1e-6));
+  while (TOUR.cards < want){ e.deck.push(e.deck.shift()); TOUR.cards++; layout(); }
+}
+function tourTick(dt){
+  if (!TOUR.on){
+    TOUR.idle += dt;
+    if (TOUR.idle >= ((focus || browse) ? IDLE_INSIDE : IDLE_HALL) && !ptrs.size){ TOUR.on = true; TOUR.steps = tourBuild(); TOUR.i = 0; tourEnter(TOUR.steps[0]); }
+    return;
+  }
+  const st = TOUR.steps[TOUR.i]; TOUR.t += dt;
+  if (st.kind !== 'hall'){
+    tourCycleCards(st);
+    if (st.kind === 'model'){ if (TOUR.t >= 3 && TOUR.t < 6 && !TOUR.exploded) tourExplode(true); if (TOUR.t >= 6 && TOUR.exploded) tourExplode(false); }
+  }
+  if (TOUR.t >= st.dur){ TOUR.i++; if (TOUR.i >= TOUR.steps.length){ TOUR.steps = tourBuild(); TOUR.i = 0; } tourEnter(TOUR.steps[TOUR.i]); }
+}
+function tourWake(){
+  TOUR.idle = 0;
+  if (!TOUR.on) return;
+  TOUR.on = false; tourExplode(false);                                  // stay on whatever is showing, but put the model back together
+}
+for (const ev of ['pointerdown', 'pointermove', 'wheel', 'keydown', 'touchstart']) addEventListener(ev, tourWake, { capture:true, passive:true });
+
 function loop(now){
   const dt = Math.min(.05, (now - last) / 1000); last = now; time += dt;
+  tourTick(dt);
   updateRing(dt);
   frameCamera();
   const k = reduce ? 1 : 1 - Math.pow(.003, dt);

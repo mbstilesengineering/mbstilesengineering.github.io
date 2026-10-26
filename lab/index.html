@@ -1056,6 +1056,7 @@ function helioTick(dt, running){
     if (hs.hour > DAY.set){ hs.hour = DAY.rise; sunFade = 0; }            // next morning: the sun reappears in the east and the drives slew round smoothly
     hTime.value = Math.min(hTime.max, Math.max(hTime.min, hs.hour)); hTime.place(); }
   sunFade = Math.min(1, sunFade + dt * 2.5);
+  if (!hs.warm){ hs.warm = true; for (let i = 0; i < 6; i++){ hCur = null; cad.updateMatrixWorld(true); hDt = 0; placeHelio(); } }   // settle the aim (it depends on where the mirror sits) before the first frame is shown
   hDt = dt; placeHelio();
 }
 placeHelio();
@@ -4476,7 +4477,21 @@ function labMaterial(o, part, modelId){
   if(o.emissive && o.emissiveIntensity > 0 && o.emissive.getHex() !== 0){ m.emissive = o.emissive.clone(); m.emissiveIntensity = o.emissiveIntensity*.6; }
   m.userData.finish = key; _labCache.set(ck, m); return m;
 }
-const hiddenMat = new THREE.MeshBasicMaterial({ transparent:true, opacity:0, depthWrite:false, colorWrite:false });
+const hiddenMat = new THREE.MeshLambertMaterial({ color:0x000000, transparent:true, opacity:0, depthWrite:false, colorWrite:false });   // Lambert: model code may set its emissive
+// each part gets its own blueprint fill: model code that recolours or lights a part (the arm's target marker, for one) then only touches that part, and never fails on a missing emissive
+const BP_ALL = new Set();
+function bpOf(m){ let b = m.userData.__bp; if(!b){ b = new THREE.MeshLambertMaterial({ color:0x000000, emissive:0x123b68, transparent:true, opacity:.42, depthWrite:true, side:m.material && m.material.side || THREE.FrontSide }); b.userData.bp = true; m.userData.__bp = b; BP_ALL.add(b); }
+  b.color.setHex(0x000000); b.emissive.setHex(0x123b68); b.opacity = .42; b.transparent = true; return b; }   // unlit look: black diffuse, the blueprint blue carried by the emissive
+// parts the restyle never collected (plain or textured materials: the tracker's plant, the cell's screen ...) follow blueprint mode too
+function bpExtras(M){
+  const pivot = M.ad && M.ad.ex && M.ad.ex.pivot; if(!pivot) return;
+  if(!M.meshSet) M.meshSet = new Set(M.meshes);
+  pivot.traverse(o => { if(!o.isMesh || o.isInstancedMesh || M.meshSet.has(o) || o.userData.base || o.userData.focusRay) return;
+    const cur = o.material; if(!cur || Array.isArray(cur)) return;
+    if(blueprint){ if(cur.userData && cur.userData.bp) return; const orig = cur;
+      const ok = (orig.isMeshStandardMaterial || (orig.isMeshBasicMaterial && orig.map)) && orig.blending !== THREE.AdditiveBlending && orig.colorWrite !== false; if(!ok) return;
+      o.userData.__preBp = orig; o.material = bpOf(o); const e = edgesOf(o); if(e){ e.visible = true; e.material = modelEdgeMat; } }
+    else if(o.userData.__preBp){ o.material = o.userData.__preBp; o.userData.__preBp = null; if(o.userData.__edges) o.userData.__edges.visible = false; } }); }
 const _hiCache = new Map(), _dimCache = new Map(), modelEdgeMat = new THREE.LineBasicMaterial({ color:BP_EDGE, transparent:true, opacity:.75 });
 const modelEdgeHi = new THREE.LineBasicMaterial({ color:BRASS, transparent:true, opacity:.95 }), modelEdgeDim = new THREE.LineBasicMaterial({ color:BP_EDGE, transparent:true, opacity:.12 });
 function hiOf(b){ if(!_hiCache.has(b)){ const c=b.clone(); c.emissive=new THREE.Color(BRASS); c.emissiveIntensity=.32; _hiCache.set(b,c); } return _hiCache.get(b); }
@@ -4496,7 +4511,7 @@ function applyModelLook(M){
     const base = m.userData.__lab || m.material;
     if(sc && (sc.hide.has(m.userData.__pname) || (sc.hideSet && sc.hideSet.has(m)))){ m.material = hiddenMat; if(m.userData.__edges) m.userData.__edges.visible = false; continue; }
     const isSel = on ? m.userData.__cat===on : (sc ? sc.set.has(m) : false), dim = on ? !isSel : (sc && sc.ghost !== false ? !(sc.keep || sc.set).has(m) : false);
-    if(blueprint){ m.material = bpFill; const e = edgesOf(m); if(e){ e.visible = true; e.material = isSel ? modelEdgeHi : dim ? modelEdgeDim : modelEdgeMat; } }
+    if(blueprint){ m.material = bpOf(m); const e = edgesOf(m); if(e){ e.visible = true; e.material = isSel ? modelEdgeHi : dim ? modelEdgeDim : modelEdgeMat; } }
     else { if(m.userData.__edges) m.userData.__edges.visible = false; m.material = (isSel && on) ? hiOf(base) : dim ? (sc && sc.faint && !on && !(sc.mid && sc.mid.has(m)) ? faintOf(base) : dimOf(base)) : base; }
   }
 }
@@ -4697,7 +4712,7 @@ function frameLoop(now){
     M.yaw.rotation.y = yawCur[M.id] + sway;
   }
   // some original x-ray code writes opacity onto whatever material a mesh wears: hold the Lab's looks steady
-  bpFill.transparent = true; bpFill.opacity = .42; hiddenMat.transparent = true; hiddenMat.opacity = 0; hiddenMat.depthWrite = false;
+  bpFill.transparent = true; bpFill.opacity = .42; if(blueprint) for(const b of BP_ALL){ b.transparent = true; b.opacity = .42; b.depthWrite = true; b.emissive.setHex(0x123b68); b.color.setHex(0); } if(((frameLoop.n = (frameLoop.n || 0) + 1) % 20) === 1 || frameLoop.bp !== blueprint){ frameLoop.bp = blueprint; for(const M of MODELS) if(M.ready) bpExtras(M); } hiddenMat.transparent = true; hiddenMat.opacity = 0; hiddenMat.depthWrite = false;
   for(const c of _dimCache.values()){ c.transparent = true; c.opacity = .13; c.depthWrite = false; }
   for(const c of _faintCache.values()){ c.transparent = true; c.opacity = .05; c.depthWrite = false; }
   scene.updateMatrixWorld(); camera.updateMatrixWorld();

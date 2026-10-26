@@ -3497,11 +3497,11 @@ const SCENES = {
     {label:'Sealed generator', parts:['magnet_rotor','stator_plate','housing','gasket_pod'], hide:['pod','pcb_tray','cover'], dir:[-0.8,0.25,0.6], zoom:1.8, mex:0.35, title:'Power through a solid wall',
      body:'The magnets turn in the water while the coils sit dry behind a sealed 1.5 mm wall. No shaft passes through, so there is no seal to leak or wear, and the coreless generator has no cogging to stop the runner starting at low flow.'} ],
   arm:[
-    {label:'J2 cycloidal reducer', parts:['cyc_housing_belt_j2','cyc_disc_a_j2','cyc_disc_b_j2','cyc_eccentric_j2','cyc_output_j2','cyc_pins_j2','cyc_bearings_j2','cyc_brg_a_j2','cyc_brg_b_j2','motor_j2'], hide:['cyc_cover_j2'], dir:[0.9,0.25,0.5], zoom:2.0, mex:0.15, title:'A cycloidal drive at the shoulder',
+    {label:'J2 cycloidal reducer', parts:['cyc_housing_belt_j2','cyc_disc_a_j2','cyc_disc_b_j2','cyc_eccentric_j2','cyc_output_j2','cyc_pins_j2','cyc_bearings_j2','cyc_brg_a_j2','cyc_brg_b_j2','motor_j2'], glass:['cyc_housing_belt_j2','cyc_output_j2','motor_j2'], hide:['cyc_cover_j2','bolts_shoulder'], dir:[0.9,0.25,0.5], zoom:2.0, mex:0.15, title:'A cycloidal drive at the shoulder',
      body:'The shoulder carries the most torque in the arm. A cycloidal reducer packs a high ratio into a flat housing and shares the load across many lobes and pins at once, which keeps backlash low even with printed discs running on steel pins.'},
-    {label:'Spherical wrist', parts:['wrist_body','tool_flange','plan_ring_j4','plan_ring_j5','plan_ring_j6','plan_carrier_j4','plan_carrier_j5','plan_carrier_j6','motor_j4','motor_j5','motor_j6'], dir:[-0.4,0.35,1], zoom:2.0, mex:0.1, title:'Three axes, one point',
+    {label:'Spherical wrist', parts:['wrist_body','tool_flange',...['j4','j5','j6'].flatMap(j=>['plan_ring_','plan_cap_','plan_sun_','plan_planet0_','plan_planet1_','plan_planet2_','plan_carrier_','motor_'].map(n=>n+j))], glass:['wrist_body','tool_flange',...['j4','j5','j6'].flatMap(j=>['plan_ring_','plan_cap_','motor_'].map(n=>n+j))], hide:['bolts_j6','bolts_tool'], dir:[-0.4,0.35,1], zoom:2.0, mex:0.1, title:'Three axes, one point',
      body:'The J4, J5 and J6 axes all pass through one point. That splits the problem in two: the first three joints place the wrist, the last three set the tool angle, and the inverse kinematics solves in closed form instead of by iteration.'},
-    {label:'Gripper', parts:['grip_top','grip_housing','grip_pinion','servo_mg90s','grip_rods','jaw_l','jaw_r','pad_l','pad_r'], dir:[0.5,0.4,1], zoom:2.2, mex:0.1, title:'One servo, two jaws',
+    {label:'Gripper', parts:['grip_top','grip_housing','grip_pinion','servo_mg90s','grip_rods','jaw_l','jaw_r','pad_l','pad_r'], glass:['grip_top','grip_housing','servo_mg90s'], hide:['bolts_tool'], dir:[0.5,0.4,1], zoom:2.2, mex:0.1, title:'One servo, two jaws',
      body:'A single servo turns a pinion between two racks, so both jaws move together and the part always ends up centred. The gripper bolts to a standard ISO 9409 flange, so the arm can take a different tool without any change to the wrist.'} ],
   cell:[
     {label:'ST10 · Load & scan', station:0, atAdj:[0,35,0], pinAdj:[0,22,0], radius:130, offF:-0.24, dir:[0.55,0.45,1], zoom:1.3, film:true, phases:[['Place housing in the nest',1.8],['Scan the lot barcode',1.0],['Clear the curtain, release',0.9],['Index to ST20',0.7]], addsLabel:'housing with magnets', mex:0, title:'Step 1: load, scan, release',
@@ -4172,7 +4172,7 @@ THREE.BufferGeometry.prototype.setIndex = function(i){ if(__cur){ this.userData.
 const _toNI = THREE.BufferGeometry.prototype.toNonIndexed;
 THREE.BufferGeometry.prototype.toNonIndexed = function(){ const g = _toNI.call(this); if(this.userData.part) g.userData.part = this.userData.part; return g; };
 async function labFetch(u){
-  const r = await fetch('../' + u);   // model data is shared with the main site
+  const r = await fetch('../' + u);
   if(!r.ok) throw new Error('Could not load ' + u);
   return {
     json: async () => { const j = await r.json();
@@ -4367,7 +4367,7 @@ function setupModel(M, ad){
         at: wa && ad.root ? { root:ad.root, p:new V3(...wa).add(new V3(...(sc.atAdj||[0,0,0]))), pin:new V3(...wa).add(new V3(...(sc.pinAdj||sc.atAdj||[0,0,0]))) } : null };
     }
     const meshes = M.meshes.filter(m => sc.parts ? sc.parts.includes(m.userData.__pname) : m.userData.__cat===sc.cat);
-    return { ...sc, meshes, set:new Set(meshes), hide:new Set(sc.hide||[]) };
+    return { ...sc, meshes, set:new Set(meshes), hide:new Set(sc.hide||[]), glassN:new Set(sc.glass||[]) };
   });
   M.scSet = makeLabelSet(M.scenes.map((sc,i)=>{ const names=[...new Set(sc.meshes.filter(m=>shownIn(m,M.yaw)).map(m=>m.userData.__pname).filter(Boolean))];
       return { id:'s'+i, n:String(i+1).padStart(2,'0'), name:sc.label, sub: sc.addsLabel ? `adds the ${sc.addsLabel}` : (names.length?`${names.length} part${names.length>1?'s':''} · `:'')+sc.title.toLowerCase(), names }; }),
@@ -4497,6 +4497,10 @@ const modelEdgeHi = new THREE.LineBasicMaterial({ color:BRASS, transparent:true,
 function hiOf(b){ if(!_hiCache.has(b)){ const c=b.clone(); c.emissive=new THREE.Color(BRASS); c.emissiveIntensity=.32; _hiCache.set(b,c); } return _hiCache.get(b); }
 const _faintCache = new Map();
 function faintOf(b){ if(!_faintCache.has(b)){ const c=b.clone(); c.transparent=true; c.opacity=.05; c.depthWrite=false; _faintCache.set(b,c); } return _faintCache.get(b); }
+const _glassCache = new Map(), glassEdge = new THREE.LineBasicMaterial({ color:0x9fc8ff, transparent:true, opacity:.3, depthWrite:false });
+// covers inside a close-up: a clear shell with faint outlines, so the mechanism behind them reads
+const bpGlass = new THREE.MeshLambertMaterial({ color:0x000000, emissive:0x123b68, transparent:true, opacity:.1, depthWrite:false, side:THREE.DoubleSide });
+function glassOf(b){ if(!_glassCache.has(b)){ const c=b.clone(); c.transparent=true; c.opacity=.16; c.depthWrite=false; if('clearcoat' in c) c.clearcoat=0; _glassCache.set(b,c); } return _glassCache.get(b); }
 function dimOf(b){ if(!_dimCache.has(b)){ const c=b.clone(); c.transparent=true; c.opacity=.13; c.depthWrite=false; _dimCache.set(b,c); } return _dimCache.get(b); }
 function edgesOf(m){
   if(m.userData.__edges !== undefined) return m.userData.__edges;
@@ -4510,6 +4514,10 @@ function applyModelLook(M){
   for(const m of M.meshes){
     const base = m.userData.__lab || m.material;
     if(sc && (sc.hide.has(m.userData.__pname) || (sc.hideSet && sc.hideSet.has(m)))){ m.material = hiddenMat; if(m.userData.__edges) m.userData.__edges.visible = false; continue; }
+    if(sc && !on && sc.glassN && sc.glassN.has(m.userData.__pname)){ const e = edgesOf(m);
+      if(blueprint){ m.material = bpGlass; if(e){ e.visible = true; e.material = glassEdge; } }
+      else { m.material = glassOf(base); if(e){ e.visible = true; e.material = glassEdge; } }
+      continue; }
     const isSel = on ? m.userData.__cat===on : (sc ? sc.set.has(m) : false), dim = on ? !isSel : (sc && sc.ghost !== false ? !(sc.keep || sc.set).has(m) : false);
     if(blueprint){ m.material = bpOf(m); const e = edgesOf(m); if(e){ e.visible = true; e.material = isSel ? modelEdgeHi : dim ? modelEdgeDim : modelEdgeMat; } }
     else { if(m.userData.__edges) m.userData.__edges.visible = false; m.material = (isSel && on) ? hiOf(base) : dim ? (sc && sc.faint && !on && !(sc.mid && sc.mid.has(m)) ? faintOf(base) : dimOf(base)) : base; }
@@ -4788,5 +4796,3 @@ setTimeout(()=>{
 }, 400);
 })();
 </script>
-
-</html>

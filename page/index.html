@@ -795,6 +795,7 @@ const hParts = [];
 for (const [name, p] of Object.entries(HM.parts)){
   const pos = new Int16Array(HB, p.vOff, p.vCount * 3), idx = p.wide ? new Uint32Array(HB, p.fOff, p.fCount) : new Uint16Array(HB, p.fOff, p.fCount);
   const f = new Float32Array(pos.length); for (let i = 0; i < pos.length; i++) f[i] = pos[i] * HM.unit;
+  if (name === 'el_drive_bracket') for (let i = 0; i < f.length; i += 3){ const y = f[i+1]; if (f[i] < -122.5 && Math.abs(y) > 18.9) f[i+1] = y + Math.sign(y) * 8.5; }   // cheeks stand clear of the 52 mm worm wheel (inner faces at ±27.5)
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(f, 3)); g.setIndex(new THREE.BufferAttribute(idx, 1)); g.computeVertexNormals();
   const isGold = p.color === '#B8893A', isBrass = p.color === '#C99A45', isClear = p.color === '#E6F0F2';
   const m = new THREE.MeshStandardMaterial({ color:p.color, roughness: isGold || isBrass ? .32 : .62, metalness: isGold || isBrass ? .85 : .08,
@@ -814,7 +815,7 @@ function motor(parent, x, y, z, axis){ const m = buy(motorGeo, '#8C949A', .55); 
   if (axis === 'x') m.rotation.y = Math.PI / 2; if (axis === 'y') m.rotation.x = Math.PI / 2; parent.add(m);
   const cap = buy(new THREE.BoxGeometry(17, 15, 6), '#2D5CA8', .1); cap.position.set(0, -14, 0); m.add(cap); return m; }
 const motAz = motor(gBase, 30, HG.AZ_CD + 8, HG.WORM_Z, 'x');
-const motEl = motor(gAz, HG.X_EW - 8, 34.5, HG.Z_EWORM, 'y');
+const motEl = motor(gAz, HG.X_EW - 8, 43, HG.Z_EWORM, 'y');   // on the outer face of the widened cheek
 const motF = motor(gCell, 32, 0, -37.5, 'z');
 const pcb = (w, h, c = '#1F5F3A') => buy(new THREE.BoxGeometry(w, h, 1.6), c, .1);
 const main = pcb(80, 80); main.position.set(0, 8, 9.8); gBase.add(main);

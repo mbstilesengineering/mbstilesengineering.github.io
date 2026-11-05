@@ -3971,6 +3971,13 @@ const GEN = (() => {
       const names = new Map(); for (const m of c.meshes) { const p = m.geometry.userData.part, n = m.userData.gxName || (p ? prettyN(p.name) : null); if (n) names.set(n, (names.get(n) || 0) + 1); }
       return { c, y: b.getCenter(new V3()).y, vol: b.getSize(new V3()).length(), names }; }).filter(Boolean);
     if (!S.ordered) list.sort((a, b) => (HWRE.test(a.c.name) - HWRE.test(b.c.name)) || (a.y - b.y) || (b.vol - a.vol));
+    // meshes that belong to no assembly (a screen face, a label) go in with the part they are mounted on
+    const owner = new Map(); list.forEach((s2, i) => { s2.extra = []; s2.c.meshes.forEach(m => owner.set(m, i)); });
+    const orphans = []; S.pivot.traverse(o => { if (o.isMesh && !owner.has(o)) orphans.push(o); });
+    for (const m of orphans) {
+      for (let p = m.parent, d = 0; p && p !== S.pivot && d < 3; p = p.parent, d++) {
+        let hit = -1; p.traverse(c => { if (hit < 0 && c.isMesh && owner.has(c)) hit = owner.get(c); });
+        if (hit >= 0) { list[hit].extra.push(m); break; } } }
     st.steps = list; return list;
   }
   function showStep(id, n) {
@@ -4002,11 +4009,11 @@ const GEN = (() => {
     if (stopIs(id, 'drawings') && !st.sheets) { st.sheets = 'busy'; setTimeout(() => { try { drawSheets(id); } catch (err) { console.error(id, err); st.sheets = null; } }, 30); }
     if (!on) { if (st.active) restore(id); return; }
     const S = src(id), L = steps(id); if (!S || !L) return;
-    if (!st.active) { st.active = true; st.vis = new Map(); S.meshes.forEach(m => st.vis.set(m, m.visible)); if (st.play === undefined) st.play = true; if (st.cur === undefined) showStep(id, 0); else showStep(id, st.cur); setPlay(id, st.play); }
+    if (!st.active) { st.active = true; st.vis = new Map(); S.meshes.forEach(m => st.vis.set(m, m.visible)); L.forEach(s2 => (s2.extra || []).forEach(m => st.vis.set(m, m.visible))); if (st.play === undefined) st.play = true; if (st.cur === undefined) showStep(id, 0); else showStep(id, st.cur); setPlay(id, st.play); }
     st.fly = Math.min(1, st.fly + dt / .5);
     if (st.play && st.fly >= 1) { st.hold += dt; const last = st.cur >= L.length - 1; if (st.hold > (last ? 3 : 1.5)) showStep(id, last ? 0 : st.cur + 1); }
     const e = 1 - Math.pow(1 - st.fly, 3), lift = 160 * (1 - e);
-    L.forEach((s, i) => { for (const m of s.c.meshes) {
+    L.forEach((s, i) => { for (const m of (s.extra && s.extra.length ? s.c.meshes.concat(s.extra) : s.c.meshes)) {
       const was = st.vis.get(m); if (was === undefined) continue;
       unoffset(m);
       m.visible = was && i <= st.cur;

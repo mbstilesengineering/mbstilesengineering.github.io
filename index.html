@@ -3810,10 +3810,73 @@ const GEN = (() => {
       s = { id, pivot: model, meshes: parts, cats, mm: MMF.jansen };
     } else {
       const M = MODEL[id]; if (!M || !M.ready) return null;
+      if (id === 'cell' && M.ad.stations) { s = { id, M, pivot: M.ad.ex.pivot, meshes: M.meshes, cats: cellCats(M), mm: MMF[id] || 1, ordered: true }; (ST[id] = ST[id] || {}).src = s; return s; }
       const cats = M.cats.map(c => ({ name: c.name, role: (ROLES[id] && ROLES[id][c.name]) || '', meshes: c.meshes }));
       s = { id, M, pivot: M.ad.ex.pivot, meshes: M.meshes, cats, mm: MMF[id] || 1 };
     }
     (ST[id] = ST[id] || {}).src = s; return s;
+  }
+  // ---------- the assembly cell: every mesh assigned to its station or sub-assembly and named by what it does ----------
+  const MOTOR = new Set(['can', 'magnets', 'bushing', 'shaft', 'stack', 'windings', 'commutator', 'endcap', 'terminals', 'screws']);
+  const finOf = m => (m.userData.__lab && m.userData.__lab.userData && m.userData.__lab.userData.finish) || '';
+  const CELLROLE = [
+    'Operator station behind a light curtain: the can and magnets come from the tote, go into the pallet nest, and the scanner reads the pallet tag to start its record.',
+    'A vibratory bowl and escapement feed bushings; the pick-and-place slide sets one over the can and the servo press seats it against the under-support, logging force against stroke.',
+    'A servo gantry lifts an armature from the tray magazine and lowers it into the can, shaft through the new bushing.',
+    'The gantry places the end cap with its brush spreader holding the brushes open, then twin nutrunners drive both screws to torque and angle.',
+    'Test head probes the terminals for resistance, no-load speed and current; the laser marks the can, and the unload slide sends good motors out and rejects to the locked bin.'];
+  function cellCats(M) {
+    const ad = M.ad, st = ad.st || {}, all = new Set(M.meshes), used = new Set(), cats = [];
+    const under = o => { const a = []; if (o) o.traverse(c => { if (c.isMesh) a.push(c); }); return a; };
+    const isMotor = m => { const p = m.geometry.userData.part; return !!p && MOTOR.has(p.name); };
+    // labels for the moving sub-assemblies the cell code names
+    const LAB = new Map(), lab = (o, t) => { if (o && o.isObject3D) LAB.set(o, t); };
+    const { s20 = {}, s30 = {}, s40 = {}, s50 = {} } = st;
+    lab(s20.car, 'Pick-and-place carriage'); lab(s20.grip, 'Bushing gripper'); lab(s20.ram, 'Press ram'); lab(s20.sup, 'Under-support'); lab(s20.esc, 'Bushing escapement');
+    lab(s30.car, 'Gantry carriage'); lab(s30.z, 'Insertion Z-axis'); lab(s30.tool, 'Armature gripper');
+    lab(s40.car, 'Cap gantry carriage'); lab(s40.z, 'Cap Z-axis'); lab(s40.tool, 'Cap gripper'); lab(s40.sp, 'Twin nutrunners');
+    lab(s50.head, 'Test head'); lab(s50.laser, 'Laser marker'); lab(s50.car, 'Unload carriage');
+    const labelOf = m => { for (let o = m; o; o = o.parent) if (LAB.has(o)) return LAB.get(o); return null; };
+    const rootInv = new THREE.Matrix4();
+    const dimsOf = m => { if (!m.geometry.boundingBox) m.geometry.computeBoundingBox(); rootInv.copy(ad.root.matrixWorld).invert().multiply(m.matrixWorld);
+      return m.geometry.boundingBox.clone().applyMatrix4(rootInv).getSize(new V3()); };   // millimetres: the cell is built in mm under its scaled root
+    const noun = (m, k) => {
+      const p = m.geometry.userData.part; if (p && p.name) return prettyN(p.name);
+      const f = finOf(m), d = dimsOf(m), big = Math.max(d.x, d.y, d.z), cyl = m.geometry.type === 'CylinderGeometry', g = m.geometry.parameters || {};
+      if (cyl && g.radiusTop >= 40 && k === 4) return 'Stack light segment';
+      if (cyl && g.openEnded) return 'Vibratory bowl';
+      if (f === 'extrusion') return d.y >= 300 && d.y >= big * .99 ? 'Column, T-slot extrusion' : d.y < 20 && d.x > 100 && d.z > 100 ? 'Column foot plate' : big >= 200 ? 'Axis beam, T-slot extrusion' : 'Bracket, T-slot extrusion';
+      if (f === 'belt') return 'Conveyor belt';
+      if (f === 'chrome') return cyl ? 'Guide rod / quill' : 'Quill';
+      if (f === 'alu_black') return cyl ? 'Cylinder / spindle drive' : 'Actuator body';
+      if (f === 'powder') return cyl ? 'Feeder drive base' : 'Cover housing';
+      if (f === 'plate') return 'Plate';
+      if (/red/i.test(matOf(m)) || f === 'paint') return 'Indicator';
+      return cyl ? 'Cylindrical part' : 'Housing';
+    };
+    const add = (name, role, list, opt = {}) => { const ms = list.filter(m => all.has(m) && !used.has(m) && !isMotor(m)); ms.forEach(m => used.add(m)); if (!ms.length) return;
+      ms.forEach(m => { const L = labelOf(m), n = noun(m, opt.k); m.userData.gxName = L && !(m.geometry.userData.part || {}).name ? `${L}: ${n.charAt(0).toLowerCase() + n.slice(1)}` : n; if (m.userData.gxNameFix) m.userData.gxName = m.userData.gxNameFix; });
+      cats.push(Object.assign({ name, role, meshes: ms }, opt)); };
+    const conv = ad.conv, convM = conv.children.filter(c => c.isMesh), palG = conv.children.filter(c => !c.isMesh);
+    add('Conveyor frame', 'Two lanes of T-slot extrusion and the two transfer units at the ends: the loop the pallets ride round.', convM.filter(m => finOf(m) === 'extrusion'));
+    add('Conveyor belts', 'Flat belts on both lanes and both transfer units.', convM.filter(m => finOf(m) === 'belt'));
+    convM.forEach(m => { if (!used.has(m)) m.userData.gxNameFix = 'Pallet stop gate'; });
+    add('Stop gates', 'One stop gate per station holds the pallet at its work position while the station cycles.', convM);
+    palG.forEach(g => under(g).forEach(m => { if (!isMotor(m) && !(m.geometry.userData.part || {}).name) m.userData.gxNameFix = 'RFID pallet tag'; }));
+    add('Pallets and nests', 'Twelve pallets, each with a nest that locates the motor can and an ID tag the stations read.', palG.flatMap(under));
+    ad.stations.forEach((g, k) => { const nm = (ad.inside && ad.inside[k] && ad.inside[k][0]) || `ST${(k + 1) * 10}`;
+      add(nm, CELLROLE[k] || '', under(g), { k, station: true }); });
+    const tbl = ad.root.children.find(c => c !== conv && !ad.stations.includes(c) && c.children && c.children.some(x => x.isMesh) && !(ad.guards || []).includes(c) && under(c).every(m => all.has(m)));
+    const guards = new Set((ad.guards || []).flatMap(under));
+    const rest = under(ad.root).filter(m => !used.has(m) && !guards.has(m));
+    const bin = tbl ? under(tbl) : []; bin.forEach(m => m.userData.gxNameFix = finOf(m) === 'chrome' ? 'Reject bin lock' : finOf(m) === 'alu_black' ? 'Reject bin lid' : 'Reject bin');
+    add('Reject bin', 'A locked red bin under the ST50 chute: rejected motors can only be removed by a supervisor.', bin);
+    add('HMI and controls', 'Operator panel on its pedestal, and the electrical cabinet that holds the PLC, safety relay and servo drives.', rest.filter(m => !used.has(m)), { allowHidden: true });
+    const gname = m => finOf(m) === 'extrusion' ? 'Guard frame, T-slot extrusion' : (m.material && m.material.transparent) || /acrylic|poly/i.test(matOf(m)) ? 'Polycarbonate guard panel' : 'Door handle / interlock';
+    (ad.guards || []).forEach(g => under(g).forEach(m => m.userData.gxNameFix = gname(m)));
+    add('Guarding', 'Extrusion frame and polycarbonate panels round the whole cell, with an interlocked door per station and the ST10 load opening behind the light curtain. Left off the model views so the line can be seen.', [...guards], { allowHidden: true, hidden: true });
+    cats.push({ name: 'M-28 motors in process', role: 'The product, not part of the cell: motors on the pallets, in the load tote and in the tooling at each stage of the build.', meshes: M.meshes.filter(isMotor), product: true });
+    return cats;
   }
   const matOf = m => { const p = m.geometry.userData.part, raw = p && p.material;
     if (raw && RAWNAME[raw]) return RAWNAME[raw];
@@ -3903,11 +3966,11 @@ const GEN = (() => {
     const S = src(id); if (!S) return null;
     const st = ST[id]; if (st.steps) return st.steps;
     S.pivot.updateMatrixWorld(true);
-    const list = S.cats.map(c => { const vis = c.meshes.filter(m => m.visible); if (!vis.length) return null;
+    const list = S.cats.map(c => { const vis = c.meshes.filter(m => m.visible && (!m.parent || shownIn(m.parent, S.pivot))); if (!vis.length || c.hidden) return null;
       const b = new THREE.Box3(); vis.forEach(m => b.union(relBox(m, S.pivot)));
-      const names = new Map(); for (const m of c.meshes) { const p = m.geometry.userData.part, n = p ? prettyN(p.name) : null; if (n) names.set(n, (names.get(n) || 0) + 1); }
+      const names = new Map(); for (const m of c.meshes) { const p = m.geometry.userData.part, n = m.userData.gxName || (p ? prettyN(p.name) : null); if (n) names.set(n, (names.get(n) || 0) + 1); }
       return { c, y: b.getCenter(new V3()).y, vol: b.getSize(new V3()).length(), names }; }).filter(Boolean);
-    list.sort((a, b) => (HWRE.test(a.c.name) - HWRE.test(b.c.name)) || (a.y - b.y) || (b.vol - a.vol));
+    if (!S.ordered) list.sort((a, b) => (HWRE.test(a.c.name) - HWRE.test(b.c.name)) || (a.y - b.y) || (b.vol - a.vol));
     st.steps = list; return list;
   }
   function showStep(id, n) {
@@ -3987,9 +4050,10 @@ const GEN = (() => {
     const groups = S.cats.map((c, gi) => {
       const rows = new Map(), anon = [];
       for (const m of c.meshes) {
-        if (!isShown(S, m)) continue;
+        const vis = isShown(S, m); if (!vis && !c.allowHidden) continue;
         const p = m.geometry.userData.part, mat = matOf(m), sz = partSize(m, S.pivot, S.mm);
-        env.union(relBox(m, S.pivot));
+        if (vis) env.union(relBox(m, S.pivot));
+        if (m.userData.gxName) { const name = m.userData.gxName, k = name + '|' + mat + '|' + sz.map(v => Math.round(v)).join('x'); if (!rows.has(k)) rows.set(k, { name, mat, q: 0, sz, meshes: [] }); const r = rows.get(k); r.q++; r.meshes.push(m); continue; }
         if (c.sub || (p && p.name)) { const name = c.sub ? c.name : prettyN(p.name), k = name + '|' + mat; if (!rows.has(k)) rows.set(k, { name, mat, q: 0, sz, meshes: [] }); const r = rows.get(k); r.q++; r.meshes.push(m); }
         else anon.push({ m, mat, sz });
       }
@@ -4003,7 +4067,7 @@ const GEN = (() => {
       const gpn = `${code}-${String(gi + 1).padStart(2, '0')}00`;
       list.forEach((r, i) => { r.item = ++n; r.pn = `${code}-${String(gi + 1).padStart(2, '0')}${String(i + 1).padStart(2, '0')}`; r.group = gi;
         pieces += r.q; uniq.add(r.name); if (PRINTED.test(r.mat)) printed += r.q; r.meshes.forEach(m => { meshItem.set(m, r); meshGroup.set(m, gi); }); });
-      return { name: c.name, gi, pn: gpn, list, role: c.role };
+      return { name: c.name, gi, pn: gpn, list, role: c.role, cat: c };
     }).filter(g => g.list.length);
     unpose(S);
     return { S, code, groups, rows: groups.flatMap(g => g.list), meshItem, meshGroup, env, pieces, printed, uniq };
@@ -4298,8 +4362,8 @@ void main(){
       }
     }
   }
-  function balloons(o, V, P, keyOf, labelOf, max, bounds) {
-    const M = V.stats(keyOf), L = [...M].filter(([, s]) => s.at && s.n > 4).sort((a, b) => b[1].n - a[1].n).slice(0, max);
+  function balloons(o, V, P, keyOf, labelOf, max, bounds, skipKeys) {
+    const M = V.stats(keyOf), L = [...M].filter(([k, s]) => s.at && s.n > 4 && !(skipKeys && skipKeys.has(k))).sort((a, b) => b[1].n - a[1].n).slice(0, max);
     if (!L.length) return [];
     const pad = 30, R = { x0: Math.max(bounds.x0, V.x - pad), y0: Math.max(bounds.y0, V.y - pad), x1: Math.min(bounds.x1, V.x + V.sw + pad), y1: Math.min(bounds.y1, V.y + V.sh + pad) };
     const W = R.x1 - R.x0, H = R.y1 - R.y0, PER = 2 * (W + H), cx = (R.x0 + R.x1) / 2, cy = (R.y0 + R.y1) / 2;
@@ -4393,7 +4457,7 @@ void main(){
       o.push(T(cx0 + 5, y + 10.5, k.toUpperCase().slice(0, 26), { size: 7.6, c: THIN, ls: .3 }), T(cx0 + 150, y + 10.5, v.slice(0, 40), { size: 8.6 })); });
     ty += spec.length * 15 + 22;
     const notes = ['1. DIMENSIONS IN MILLIMETRES. TOLERANCING TO ISO 8015;', '    GENERAL TOLERANCES ISO 2768-mK UNLESS STATED.', '2. ( ) REFERENCE DIMENSION, TAKEN FROM THE 3D MODEL.',
-      '3. AXIS HEIGHTS FROM DATUM A; CENTRES FROM THE MAIN AXIS.', '4. HIDDEN DETAIL OMITTED FOR CLARITY.', `5. ITEM NUMBERS: SHEETS 2 AND 3, PARTS LIST SHEET ${N > 3 ? 4 : 3}.`, '6. SECTION A–A AND DETAILS: SHEET 2.'];
+      '3. AXIS HEIGHTS FROM DATUM A; CENTRES FROM THE MAIN AXIS.', '4. HIDDEN DETAIL OMITTED FOR CLARITY.', `5. ITEM NUMBERS: SHEETS 2 AND 3, PARTS LIST SHEET ${D.plSheet}.`, '6. SECTION A–A AND DETAILS: SHEET 2.'];
     o.push(T(cx0, ty, 'NOTES', { size: 9.5, w: 700, c: DIMC, ls: .8 }));
     notes.forEach((t, i) => o.push(T(cx0, ty + 15 + i * 12.5, t, { size: 7.9 })));
     return svg(o, 'General arrangement');
@@ -4435,16 +4499,16 @@ void main(){
   }
 
   // ---------- sheet 3: exploded assembly with item balloons; parts list above the title block (ISO 7573) ----------
-  function partsTable(o, rows, x, yBottom, w, head, maxRows) {
-    const rh = 13.5, cols = [[0, 'ITEM', 30], [30, 'QTY', 30], [60, 'PART NO.', 74], [134, 'DESCRIPTION', w - 134 - 150], [w - 150, 'MATERIAL', 150]];
+  function partsTable(o, rows, x, yBottom, w, head, maxRows, rh = 13.5) {
+    const fs = rh < 13 ? 7.6 : 8.2, cols = [[0, 'ITEM', 30], [30, 'QTY', 30], [60, 'PART NO.', 74], [134, 'DESCRIPTION', w - 134 - 150], [w - 150, 'MATERIAL', 150]];
     const L = rows.slice(0, maxRows); let y = yBottom - rh;
     o.push(`<rect x="${x}" y="${r1(yBottom - rh * (L.length + 1))}" width="${w}" height="${r1(rh * (L.length + 1))}" fill="${BG}" stroke="${INK}" stroke-width="1.2"/>`);
-    cols.forEach(([cx, t]) => o.push(T(x + cx + 4, y + 9.5, t, { size: 7.2, c: THIN, ls: .5 })));
+    cols.forEach(([cx, t]) => o.push(T(x + cx + 4, y + rh * .7, t, { size: 7.2, c: THIN, ls: .5 })));
     o.push(`<path d="M${x} ${r1(y)}H${x + w}" stroke="${INK}" stroke-width="1"/>`);
     cols.slice(1).forEach(([cx]) => o.push(`<path d="M${x + cx} ${r1(yBottom - rh * (L.length + 1))}V${yBottom}" stroke="${THIN}" stroke-width=".5"/>`));
     for (const r of L) { y -= rh; o.push(`<path d="M${x} ${r1(y)}H${x + w}" stroke="${THIN}" stroke-width=".35"/>`);
       const vals = [String(r.item), String(r.q), r.pn, r.name, r.mat], lim = [4, 5, 12, Math.floor((w - 284) / 4.7), 30];
-      cols.forEach(([cx], i) => o.push(T(x + cx + 4, y + 9.8, vals[i].length > lim[i] ? vals[i].slice(0, lim[i] - 1) + '…' : vals[i], { size: 8.2 }))); }
+      cols.forEach(([cx], i) => o.push(T(x + cx + 4, y + rh * .72, vals[i].length > lim[i] ? vals[i].slice(0, lim[i] - 1) + '…' : vals[i], { size: fs }))); }
     if (head) o.push(T(x, r1(yBottom - rh * (L.length + 1) - 6), head, { size: 9.5, w: 700, c: DIMC, ls: .8 }));
     return L.length;
   }
@@ -4455,34 +4519,76 @@ void main(){
     const ratio = pickRatio(r => iv.w * PX * r * S.mm <= area.w && iv.h * PX * r * S.mm <= area.h);
     const V = shoot(CE, P, 'iso', CE.box, PX * ratio * S.mm, 2.5);
     place(o, V, area.x + (area.w - V.w / V.k) / 2, area.y + (area.h - V.h / V.k) / 2);
-    const rows = byAsm ? P.groups.map((g, i) => ({ item: i + 1, q: 1, pn: g.pn, name: `${g.name} (${g.list.reduce((a, r) => a + r.q, 0)} pcs)`, mat: 'See sheet 4', gi: g.gi })) : P.rows;
+    const rows = byAsm ? P.groups.map((g, i) => ({ item: i + 1, q: 1, pn: g.pn, name: `${g.name} (${g.list.reduce((a, r) => a + r.q, 0)} pcs)`, mat: g.sheet ? `See sheet ${g.sheet}` : `See sheet ${D.plSheet}`, gi: g.gi })) : P.rows;
     const keyOf = byAsm ? (it => P.meshGroup.get(it.m)) : (it => (P.meshItem.get(it.m) || {}).item);
     const lab = byAsm ? (k => String(P.groups.findIndex(g => g.gi === k) + 1)) : (k => String(k));
     balloons(o, V, P, keyOf, lab, byAsm ? 20 : 34, { x0: FX0 + 8, y0: FY0 + 8, x1: 680, y1: FY1 - 30 });
     viewLabel(o, area.x + area.w / 2, FY1 - 28, 'EXPLODED ISOMETRIC VIEW', `scale ${fmtR(ratio)} · parts moved apart along their assembly directions`);
-    partsTable(o, rows, TB.x, TB.y - 20, TB.w, byAsm ? 'SUB-ASSEMBLIES (PARTS LIST: SHEET 4)' : 'PARTS LIST', 44);
+    partsTable(o, rows, TB.x, TB.y - 20, TB.w, byAsm ? `SUB-ASSEMBLIES (PARTS LIST: SHEET ${D.plSheet})` : 'PARTS LIST', 44);
     return svg(o, 'Exploded assembly');
   }
-  function sheetPL(D) {
-    const { P, title, N } = D, o = frame({ type: 'Parts list', scale: '—', title, sub: 'Parts list', no: D.no, n: 4, of: N });
-    // multi-column parts list, grouped by sub-assembly
-    const lines = []; P.groups.forEach((g, i) => { lines.push({ head: `${i + 1}  ${g.pn}  ${g.name.toUpperCase()}` }); g.list.forEach(r => lines.push(r)); });
-    const colW = 370, gapC = 14, x0 = FX0 + 12, top = FY0 + 64, rh = 12.6;
-    const per = Math.floor((TB.y - 30 - top) / rh); let col = 0, row = 0;
-    o.push(T(x0, FY0 + 40, 'PARTS LIST · ISO 7573', { size: 11, w: 700, c: DIMC, ls: 1 }), T(x0, FY0 + 54, `${P.rows.length} line items · ${P.pieces} pieces · item numbers match sheets 2 and 3 and the bill of materials`, { size: 8.5, c: THIN }));
-    const hdr = (cx) => { o.push(`<path d="M${cx} ${top}H${cx + colW}" stroke="${INK}" stroke-width=".9"/>`); [['ITEM', 0], ['QTY', 30], ['PART NO.', 58], ['DESCRIPTION', 128], ['MATERIAL', 262]].forEach(([t, dx]) => o.push(T(cx + dx + 2, top - 3, t, { size: 7, c: THIN, ls: .4 }))); };
+  const PL_TOP = FY0 + 64, PL_RH = 12.6, PL_PER = Math.floor((TB.y - 30 - PL_TOP) / PL_RH) * 3;
+  function plLines(P) { const lines = []; P.groups.forEach((g, i) => { lines.push({ head: `${i + 1}  ${g.pn}  ${g.name.toUpperCase()}${g.cat && g.cat.hidden ? ' (NOT SHOWN ON VIEWS)' : ''}${g.cat && g.cat.product ? ' (PRODUCT, NOT PART OF THE CELL)' : ''}` }); g.list.forEach(r => lines.push(r)); }); return lines; }
+  function sheetPL(D, page) {
+    const { P, title, N } = D, pages = Math.ceil(D.plLines.length / PL_PER), n = D.plSheet + page;
+    const o = frame({ type: 'Parts list', scale: '—', title, sub: pages > 1 ? `Parts list, page ${page + 1} of ${pages}` : 'Parts list', no: D.no, n, of: N });
+    const lines = D.plLines.slice(page * PL_PER, (page + 1) * PL_PER);
+    const colW = 370, gapC = 14, x0 = FX0 + 12, top = PL_TOP, rh = PL_RH;
+    const per = PL_PER / 3; let col = 0, row = 0;
+    o.push(T(x0, FY0 + 40, 'PARTS LIST · ISO 7573', { size: 11, w: 700, c: DIMC, ls: 1 }), T(x0, FY0 + 54, `${P.rows.length} line items · ${P.pieces} pieces · item numbers match every sheet of this set and the bill of materials`, { size: 8.5, c: THIN }));
+    const hdr = (cx) => { o.push(`<path d="M${cx} ${top}H${cx + colW}" stroke="${INK}" stroke-width=".9"/>`); [['ITEM', 0], ['QTY', 28], ['PART NO.', 54], ['DESCRIPTION', 118], ['MATERIAL', 268]].forEach(([t, dx]) => o.push(T(cx + dx + 2, top - 3, t, { size: 7, c: THIN, ls: .4 }))); };
     hdr(x0);
     for (const L of lines) {
       if (row >= per) { col++; row = 0; if (col > 2) break; hdr(x0 + col * (colW + gapC)); }
       const cx = x0 + col * (colW + gapC), y = top + row * rh;
-      if (L.head) o.push(`<rect x="${cx}" y="${r1(y + 1)}" width="${colW}" height="${r1(rh - 1)}" fill="rgba(143,180,224,.14)"/>`, T(cx + 3, y + 9.7, L.head.slice(0, 58), { size: 7.8, w: 700, ls: .3 }));
-      else { const v = [String(L.item), String(L.q), L.pn, L.name.length > 25 ? L.name.slice(0, 24) + '…' : L.name, L.mat.length > 21 ? L.mat.slice(0, 20) + '…' : L.mat];
-        [0, 30, 58, 128, 262].forEach((dx, i) => o.push(T(cx + dx + 2, y + 9.7, v[i], { size: 8 }))); o.push(`<path d="M${cx} ${r1(y + rh)}H${cx + colW}" stroke="${THIN}" stroke-width=".3"/>`); }
+      if (L.head) o.push(`<rect x="${cx}" y="${r1(y + 1)}" width="${colW}" height="${r1(rh - 1)}" fill="rgba(143,180,224,.14)"/>`, T(cx + 3, y + 9.7, L.head.length > 70 ? L.head.slice(0, 69) + '…' : L.head, { size: 7.4, w: 700, ls: .2 }));
+      else { const v = [String(L.item), String(L.q), L.pn, L.name.length > 27 ? L.name.slice(0, 26) + '…' : L.name, L.mat.length > 21 ? L.mat.slice(0, 20) + '…' : L.mat];
+        [0, 28, 54, 118, 268].forEach((dx, i) => o.push(T(cx + dx + 2, y + 9.7, v[i], { size: 8 }))); o.push(`<path d="M${cx} ${r1(y + rh)}H${cx + colW}" stroke="${THIN}" stroke-width=".3"/>`); }
       row++;
     }
     return svg(o, 'Parts list');
   }
 
+  // ---------- sub-assembly sheets: one per station / module, every item ballooned and listed ----------
+  function sheetSub(D, sub, n) {
+    const { P, S, title, N } = D, mm = S.mm, set = new Set(sub.groups.flatMap(g => g.list.flatMap(r => r.meshes)));
+    const C2 = { list: D.C.list.filter(it => set.has(it.m)), box: new THREE.Box3() }; C2.list.forEach(it => C2.box.union(it.b));
+    if (!C2.list.length) return null;
+    const sz = C2.box.getSize(new V3()), X = sz.x, Y = sz.y, Z = sz.z, ML = 56, MB = 50, GV = 30, GH = 60, MR = 26, MT = 26;
+    const W = u => ML + X * u + GH + Z * u + MR, H = u => MT + Z * u + GV + Y * u + MB, area = { x: FX0 + 6, y: FY0 + 6, w: 682 - FX0 - 6, h: FY1 - FY0 - 30 };
+    const ratio = pickRatio(r => { const u = PX * r * mm; return W(u) <= area.w && H(u) <= area.h; }), u = PX * ratio * mm;
+    const sx = area.x + (area.w - W(u)) / 2, sy = area.y + (area.h - H(u)) / 2, fx = sx + ML, ty = sy + MT, fy = ty + Z * u + GV, rx = fx + X * u + GH;
+    const rows = sub.groups.flatMap(g => g.list), keyOf = it => (P.meshItem.get(it.m) || {}).item, mine = new Set(rows.map(r => r.item));
+    const o = frame({ type: 'Sub-assembly drawing', scale: fmtR(ratio), title, sub: `${sub.name} · ${sub.pn}`, no: `${P.code}-${sub.pn.split('-')[1]}-SA`, n, of: N });
+    const vF = place(o, shoot(C2, P, 'front', C2.box, u, 2.5), fx, fy), vT = place(o, shoot(C2, P, 'top', C2.box, u, 2.5), fx, ty), vR = place(o, shoot(C2, P, 'right', C2.box, u, 2.5), rx, fy);
+    const ax2 = D.axes.filter(a => [...a.meshes].some(m => set.has(m)));
+    centreLines(o, vF, ax2, 'front', 20); centreLines(o, vT, ax2, 'top', 20); centreLines(o, vR, ax2, 'right', 20);
+    const base = vF.y + vF.sh;
+    dimLin(o, [vF.x, base], [vF.x + vF.sw, base], base + 26, `(${fmtD(X * mm)})`, true);
+    dimLin(o, [vF.x, vF.y], [vF.x, base], vF.x - 22, `(${fmtD(Y * mm)})`, false);
+    dimLin(o, [vR.x, base], [vR.x + vR.sw, base], base + 26, `(${fmtD(Z * mm)})`, true);
+    // where it sits in the cell: offsets of its centre from the cell's datum faces
+    const cb = D.C.box, cc = C2.box.getCenter(new V3());
+    o.push(T(vF.x, Math.min(FY1 - 14, base + 52), `LOCATION IN THE ASSEMBLY (CENTRE): X ${fmtD((cc.x - cb.min.x) * mm)} FROM LEFT · Y ${fmtD((C2.box.min.y - cb.min.y) * mm)} BASE ABOVE DATUM A · Z ${fmtD((cc.z - cb.min.z) * mm)} FROM REAR`, { size: 7.8, c: THIN }));
+    const bnd = { x0: FX0 + 6, y0: FY0 + 6, x1: 684, y1: FY1 - 22 };
+    const B1 = balloons(o, vF, P, keyOf, k => String(k), 22, bnd), done = new Set(B1.map(b => b.key));
+    const B2 = balloons(o, vT, P, keyOf, k => String(k), 14, bnd, done); B2.forEach(b => done.add(b.key));
+    balloons(o, vR, P, keyOf, k => String(k), 8, bnd, done);
+    // its parts list, above the title block
+    const RH = 11.4, fit = Math.floor((TB.y - 20 - FY0 - 64) / RH) - 1, shown = partsTable(o, rows, TB.x, TB.y - 20, TB.w, `PARTS LIST · ${sub.name.toUpperCase()}`.slice(0, 52), fit, RH);
+    if (shown < rows.length) o.push(T(TB.x + TB.w, TB.y - 20 - RH * (shown + 1) - 6, `+${rows.length - shown} more: parts list sheet ${D.plSheet}`, { size: 8.5, c: DIMC, a: 'end' }));
+    if (sub.role) { const words = sub.role.split(' '), lines = ['']; for (const w of words) { if ((lines[lines.length - 1] + ' ' + w).length > 82) lines.push(w); else lines[lines.length - 1] += (lines[lines.length - 1] ? ' ' : '') + w; }
+      const y0 = TB.y - 20 - (Math.min(rows.length, fit) + 1) * RH - 30 - lines.length * 11; if (y0 > FY0 + 60) { o.push(T(TB.x, y0, 'FUNCTION', { size: 9, w: 700, c: DIMC, ls: .8 })); lines.forEach((l, i) => o.push(T(TB.x, y0 + 13 + i * 11, l, { size: 8.2 }))); } }
+    return svg(o, sub.name);
+  }
+  function subsOf(D) {
+    if (D.id !== 'cell') return [];
+    const G = D.P.groups, by = f => G.filter(f), out = [];
+    const conv = by(g => /conveyor|stop gates|pallets/i.test(g.name)); if (conv.length) out.push({ name: 'Conveyor, stop gates and pallets', groups: conv, pn: conv[0].pn, role: 'Twin-lane pallet conveyor with end transfers; a stop gate at each station holds the pallet on its work position.' });
+    by(g => g.cat && g.cat.station).forEach(g => out.push({ name: g.name, groups: [g], pn: g.pn, role: g.role }));
+    by(g => /reject|hmi/i.test(g.name)).forEach(g => out.push({ name: g.name, groups: [g], pn: g.pn, role: g.role }));
+    return out;
+  }
   // ---------- assemble the set ----------
   function specOf(id) { const dl = document.getElementById(id === 'jansen' ? 'specs-dl' : 'sp-' + id); if (!dl) return [];
     return [...dl.querySelectorAll('div')].map(d => [(d.querySelector('dt') || {}).textContent || '', (d.querySelector('dd') || {}).textContent || '']).filter(([a, b]) => a && b && !/loading/i.test(b)); }
@@ -4515,15 +4621,19 @@ void main(){
       D.details.push({ L: L[D.details.length], label: d.label, reg, view, C: CD, hide, cut, c: lc, rad: rr, fromSec: !!d.sec });
       if (D.details.length >= 3) break;
     }
-    D.N = P.rows.length > 44 ? 4 : 3;
+    D.subs = subsOf(D); D.plLines = plLines(P);
+    const plPages = P.rows.length > 44 || D.subs.length ? Math.ceil(D.plLines.length / PL_PER) : 0;
+    D.subs.forEach((sb, i) => { sb.sheet = 4 + i; sb.groups.forEach(g => g.sheet = sb.sheet); });
+    D.plSheet = plPages ? 4 + D.subs.length : 3; D.plPages = plPages; D.N = 3 + D.subs.length + plPages;
     return D;
   }
   function drawSheets(id) {
     const st = ST[id], D = plan(id); if (!D) { st.sheets = null; return; }
-    st.svg = [sheetGA(D), sheetSec(D), sheetEx(D)]; if (D.N > 3) st.svg.push(sheetPL(D));
+    st.svg = [sheetGA(D), sheetSec(D), sheetEx(D)]; const names = ['General arrangement', 'Section and details', 'Exploded assembly'];
+    D.subs.forEach((sb, i) => { st.svg.push(sheetSub(D, sb, 4 + i) || ''); names.push(sb.name.replace(/ · .*/, '').replace(/^(ST\d+).*/, '$1 station')); });
+    for (let p = 0; p < D.plPages; p++) { st.svg.push(sheetPL(D, p)); names.push(D.plPages > 1 ? `Parts list ${p + 1}` : 'Parts list'); }
     const tabs = document.getElementById(`gx-${id}-tabs`);
-    if (tabs) tabs.innerHTML = ['General arrangement', 'Section and details', 'Exploded assembly', 'Parts list'].slice(0, st.svg.length)
-      .map((t, i) => `<button type="button" role="tab" aria-selected="${i === (st.sheetI || 0)}" data-gxs="${id}" data-s="${i}">0${i + 1} · ${t}</button>`).join('');
+    if (tabs) tabs.innerHTML = names.map((t, i) => `<button type="button" role="tab" aria-selected="${i === (st.sheetI || 0)}" data-gxs="${id}" data-s="${i}">${String(i + 1).padStart(2, '0')} · ${escH(t)}</button>`).join('');
     st.sheets = true; showSheet(id, Math.min(st.sheetI || 0, st.svg.length - 1));
   }
   function showSheet(id, i) { const st = ST[id] = ST[id] || {}; st.sheetI = i; if (!st.svg) return; document.getElementById(`gx-${id}-sheet`).innerHTML = st.svg[i]; }

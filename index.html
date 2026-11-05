@@ -4025,7 +4025,53 @@ const GEN = (() => {
   }
   function unoffset(m) { const u = m.userData; if (u.__gxOff) { if (u.__gxAt && m.position.equals(u.__gxAt)) m.position.sub(u.__gxOff); u.__gxOff = null; u.__gxAt = null; } }
   function restore(id) { const st = ST[id]; st.active = false; if (st.vis) for (const [m, v] of st.vis) { unoffset(m); m.visible = v; } }
-  function attach(M) { if (M.id === 'charpy') return; const t = M.ad.tick; M.ad.tick = (dt, f) => { t(dt, f); after(M.id, dt); }; }
+  // ---------- assembly cell: station layouts revised so no moving tooling passes through its own frame ----------
+  function cellFix(M) {
+    const ad = M.ad, st = ad.st; if (!st || !ad.stations || ad.__fixed) return; ad.__fixed = true;
+    const TOP = st.TOP, XK = st.XK, near = (a, b) => Math.abs(a - b) < 1.5, log = [];
+    const at = (g, x, y, z) => g.children.filter(c => c.isMesh && near(c.position.x, x) && near(c.position.y, y) && near(c.position.z, z));
+    const one = (g, x, y, z, what) => { const m = at(g, x, y, z)[0]; if (!m) log.push('missing ' + what); return m; };
+    const clone = (m, x, y, z, sy = 1) => { const c = new THREE.Mesh(m.geometry, m.material); c.position.set(x, y, z); c.scale.copy(m.scale); c.scale.y *= sy; c.castShadow = c.receiveShadow = true;
+      c.userData.__lab = m.userData.__lab; m.parent.add(c); M.meshes.push(c); const cat = M.cats.find(k => k.meshes.includes(m)); if (cat) cat.meshes.push(c); return c; };
+    const stretchZ = (list, len0, z0, z1) => list.forEach(m => { m.scale.z *= (z1 - z0) / len0; m.position.z = (z0 + z1) / 2; });
+    // ST20: column moves beside the press, out of the gripper's path; the press stack rises 70 mm to clear the pick-and-place carriage
+    { const g = ad.stations[1], x = XK[1], s20 = st.s20 || {};
+      const col = one(g, x, TOP + 410, -30, 'ST20 column'), foot = one(g, x, TOP + 7, -30, 'ST20 foot'), arm = one(g, x, TOP + 760, 80, 'ST20 arm');
+      const moving = new Set([s20.car, s20.ram, s20.sup, s20.feedG].filter(Boolean));
+      g.children.filter(c => !moving.has(c) && c !== arm && Math.abs(c.position.x - x) <= 95 && c.position.z >= 75 && c.position.z <= 265 && c.position.y >= TOP + 370
+        && !(c.geometry && c.geometry.type === 'TubeGeometry')).forEach(c => { c.position.y += 70; });
+      if (col) col.position.set(x + 100, col.position.y, -20); if (foot) foot.position.set(x + 100, foot.position.y, -20);
+      if (arm) arm.position.set(x + 100, TOP + 830, 80);
+      // the fixed air line to the carriage valve sat across the carriage's stroke; air now runs in the cable chain
+      g.children.forEach(c => { const p = c.geometry && c.geometry.type === 'TubeGeometry' && c.geometry.parameters.path && c.geometry.parameters.path.points;
+        if (p && near(p[0].x, x - 70) && near(p[0].y, TOP + 420) && near(p[0].z, 140)) c.visible = false; });
+      if (s20.ram) s20.ram.children.forEach(c => { if (!c.isMesh) return; if (near(c.position.y, 175)) { c.scale.y *= 300 / 230; c.position.y = 210; } else if (near(c.position.y, 300)) c.position.y = 370; }); }
+    // ST30: offset gantry like ST40. The beam moves 90 mm aside and is carried on a column at its far end, beyond the carriage's
+    // travel; the Z-axis hangs off the carriage on the station centre line, so the quill no longer runs through the beam
+    { const g = ad.stations[2], x = XK[2], s30 = st.s30 || {};
+      const col = one(g, x, TOP + 350, -30, 'ST30 column'), foot = one(g, x, TOP + 7, -30, 'ST30 foot');
+      const beam = at(g, x, TOP + 690, -70), rail = at(g, x, TOP + 732, -70), shelf = one(g, x + 85, TOP + 690, -60, 'ST30 shelf'), tray = one(g, x + 52, TOP + 700, -60, 'ST30 tray');
+      const chainG = g.children.find(c => !c.isMesh && near(c.position.x, x + 85) && near(c.position.z, -385));
+      stretchZ(beam, 760, -450, 370); [...beam, ...rail].forEach(m => m.position.x = x - 90);
+      if (shelf) shelf.position.x = x - 175; if (chainG) chainG.position.x = x - 175; if (tray) tray.position.x = x - 38;
+      if (col) col.position.set(x - 90, col.position.y, 330); if (foot) foot.position.set(x - 90, foot.position.y, 330);
+      if (s30.z) s30.z.position.x = 90;
+      ad.__post = () => { if (s30.car) s30.car.position.x = x - 90; }; }
+    // ST40: the station column goes under the nutrunner arm; a new column carries the gantry beam at its far end
+    { const g = ad.stations[3], x = XK[3];
+      const col = one(g, x, TOP + 420, -30, 'ST40 column'), foot = one(g, x, TOP + 7, -30, 'ST40 foot'), brk = one(g, x + 50, TOP + 820, -30, 'ST40 bracket');
+      stretchZ(at(g, x - 90, TOP + 690, -70), 760, -450, 370);
+      const tray4 = one(g, x - 38, TOP + 700, -60, 'ST40 tray'); if (tray4) tray4.position.x = x - 20;
+      if (col && foot) { clone(col, x - 135, TOP + 345, 335, 690 / 840); clone(foot, x - 135, TOP + 7, 335); col.position.set(x + 100, col.position.y, -40); foot.position.set(x + 100, foot.position.y, -40); }
+      if (brk) brk.visible = false;
+      // the nutrunners' guide rod ends in its slide block instead of running up through the arm
+      const sp = (st.s40 || {}).sp; if (sp) sp.children.forEach(c => { if (c.isMesh && near(c.position.x, 100) && near(c.position.y, 420)) { c.scale.y *= 395 / 440; c.position.y = 420 - 22.5; } }); }
+    // ST50: the test-head arm stops short of the ram; the cylinder hangs off its end and the rod runs into the cylinder, not the arm
+    { const g = ad.stations[4], x = XK[4]; const arm = one(g, x, TOP + 840, 80, 'ST50 arm'); if (arm) { arm.scale.z *= 220 / 300; arm.position.z = 40; } }
+    ad.root.updateMatrixWorld(true);
+    if (log.length) console.warn('cellFix', log.join('; '));
+  }
+  function attach(M) { if (M.id === 'cell') cellFix(M); if (M.id === 'charpy') return; const t = M.ad.tick; M.ad.tick = (dt, f) => { t(dt, f); if (M.ad.__post) M.ad.__post(); after(M.id, dt); }; }
   // ---------- parts list: one numbering shared by the BOM slide and every drawing ----------
   const CODE = { jansen: 'JAN', walker: 'WLK', helio: 'HEL', aero: 'AER', hydro: 'HYD', arm: 'ARM', cell: 'CEL', stirling: 'STR', geneva: 'GEN', atom: 'CAM' };
   const GETC = [(P, k) => P.getX(k), (P, k) => P.getY(k), (P, k) => P.getZ(k)];

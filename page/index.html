@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#07090d">
 <title>M.B. Stiles Portfolio Lab</title>
-<meta name="description" content="M.B. Stiles — mechanical design portfolio: ten mechanisms and products, explorable in 3D.">
+<meta name="description" content="M.B. Stiles — mechanical design portfolio: eleven mechanisms and products, explorable in 3D.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..800&family=JetBrains+Mono:wght@400;500&display=swap">
@@ -212,6 +212,122 @@ body.bp .tag{background:rgba(11,38,70,.85)}
   .scrollhint{display:none}
 }
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.scrollhint::after{animation:none}}
+
+/* ---------- project 11: Charpy tester (scoped) ---------- */
+.panel.cp{max-height:calc(100vh - 170px);overflow-y:auto;scrollbar-width:thin}
+.cp-bench{max-width:25rem;background:var(--glass);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--hair);border-radius:2px;padding:14px 14px 12px;text-shadow:none}
+.cp-bench h2{font-size:clamp(1.05rem,1.4vw,1.3rem)}
+.cp-seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:0 0 10px}
+.cp-seg button{all:unset;cursor:pointer;display:grid;gap:2px;padding:7px 8px;border:1px solid var(--hair);border-radius:2px;font-family:var(--f-display);font-stretch:112%;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--steel)}
+.cp-seg button small{font-family:var(--f-mono);font-size:8.5px;letter-spacing:.06em;font-weight:400;text-transform:none;color:var(--dim)}
+.cp-seg button[aria-pressed="true"]{color:var(--paper);border-color:var(--mc);background:rgba(228,233,240,.05)}
+.cp-seg button:focus-visible{outline:1px solid var(--brass);outline-offset:2px}
+.cp-seg button:disabled,.cp-bench .btn:disabled{opacity:.45;cursor:default}
+.cp-temp{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;margin:0 0 10px;font-family:var(--f-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--steel)}
+.cp-temp output{color:var(--paper);font-size:12px;min-width:4.5em;text-align:right;font-variant-numeric:tabular-nums}
+.cp-temp input{-webkit-appearance:none;appearance:none;width:100%;height:22px;background:transparent;margin:0}
+.cp-temp input::-webkit-slider-runnable-track{height:2px;background:linear-gradient(90deg,#6fa8ff,#3a4558 45%,#3a4558 55%,#e0784f)}
+.cp-temp input::-moz-range-track{height:2px;background:linear-gradient(90deg,#6fa8ff,#3a4558 45%,#3a4558 55%,#e0784f)}
+.cp-temp input::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--paper);margin-top:-6px;border:0}
+.cp-temp input::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--paper);border:0}
+.cp-row{display:flex;gap:8px;align-items:center;margin:0 0 10px}
+.cp-row .btn{flex:1;justify-content:center}
+.cp-chk{display:flex;align-items:center;gap:7px;font-family:var(--f-mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--steel);cursor:pointer;white-space:nowrap}
+.cp-chk input{accent-color:var(--brass)}
+.cp-status{font-family:var(--f-mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--brass);margin:0 0 8px}
+.cp-readout{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--hair);border:1px solid var(--hair);margin:0 0 8px}
+.cp-readout div{background:#0a0e15;padding:6px 8px;display:grid;gap:1px}
+.cp-readout span{font-family:var(--f-mono);font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:var(--steel)}
+.cp-readout b{font-family:var(--f-display);font-stretch:110%;font-weight:500;font-size:15px;font-variant-numeric:tabular-nums}
+.cp-readout b small{font-size:10px;color:var(--steel);margin-left:2px;font-weight:400}
+.cp-readout .big{grid-column:span 3;display:flex;justify-content:space-between;align-items:baseline}
+.cp-readout .big b{font-size:22px}
+.cp-verdict{font-size:12px;color:#c3cad5;margin:0 0 8px;line-height:1.45}
+.cp-verdict b{color:var(--paper)}
+.cp-fold,.cp-doc .fold{border-top:1px solid var(--hair);border-bottom:1px solid var(--hair);margin:0}
+.cp-fold + .cp-fold,.cp-doc .fold + .fold{border-top:0}
+.cp-fold summary,.cp-doc .fold summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:8px 0;font-family:var(--f-mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--paper);user-select:none}
+.cp-fold summary::-webkit-details-marker,.cp-doc .fold summary::-webkit-details-marker{display:none}
+.cp-fold summary::after,.cp-doc .fold summary::after{content:"+";margin-left:auto;color:var(--brass);font-size:14px;line-height:1}
+.cp-fold[open] summary::after,.cp-doc .fold[open] summary::after{content:"−"}
+.cp-fold summary span,.cp-doc .fold summary span{color:var(--brass)}
+.cp-fold summary:focus-visible,.cp-doc .fold summary:focus-visible{outline:1px solid var(--brass);outline-offset:2px}
+.cp-macros{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:4px 0 8px}
+.cp-macros figure{margin:0;display:grid;gap:4px}
+.cp-macros canvas{width:100%;aspect-ratio:8/5;display:block;border:1px solid var(--hair);border-radius:2px}
+.cp-macros figcaption{font-family:var(--f-mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--steel)}
+.cp-macros figcaption b{display:block;color:var(--paper);font-weight:500}
+.cp-runs svg{width:100%;height:auto;display:block;margin-bottom:8px}
+.cp-parts{list-style:none;margin:0;padding:0}
+.cp-parts li{display:grid;grid-template-columns:52px minmax(0,1fr);gap:8px;padding:5px 0;border-top:1px solid var(--hair);font-size:12px;color:#c3cad5;line-height:1.4}
+.cp-parts li b{font-family:var(--f-mono);font-weight:500;color:var(--brass);font-size:10.5px}
+.cp-tool{font-family:var(--f-mono);font-size:9.5px;letter-spacing:.08em;color:var(--steel);margin:6px 0 10px}
+.cp-build .body{margin-bottom:10px}
+.cp-stepper{margin:10px 0 0}
+.cp-stepper .btn{flex:0 0 auto}
+.cp-dots{flex:1;display:flex;justify-content:center;gap:5px}
+.cp-dots i{width:7px;height:7px;border-radius:50%;background:var(--hair);cursor:pointer}
+.cp-dots i.on{background:var(--brass)}
+.cp-docbtns{display:flex;flex-wrap:wrap;gap:8px}
+/* reference overlay */
+.cp-doc{position:fixed;inset:0;z-index:30;background:var(--ink);display:flex;flex-direction:column;padding:calc(12px + env(safe-area-inset-top,0px)) max(16px, env(safe-area-inset-right,0px)) env(safe-area-inset-bottom,0px) max(16px, env(safe-area-inset-left,0px))}
+html.cp-docopen{overflow:hidden}
+.cp-dochead{display:flex;align-items:center;gap:12px;padding:6px 0 12px;border-bottom:1px solid var(--hair)}
+.cp-doctabs{display:flex;flex-wrap:wrap;gap:6px;flex:1}
+.cp-doctabs button,.cp-tabs button{all:unset;cursor:pointer;padding:8px 12px;border:1px solid var(--hair);border-radius:2px;font-family:var(--f-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--steel)}
+.cp-doctabs button[aria-selected="true"]{color:var(--paper);border-color:var(--brass)}
+.cp-tabs button[aria-selected="true"]{color:var(--paper);border-color:var(--bp-ink)}
+.cp-doctabs button:focus-visible,.cp-tabs button:focus-visible{outline:1px solid var(--brass);outline-offset:2px}
+.cp-docbody{flex:1;overflow-y:auto;padding:18px 0 24px;max-width:1180px;width:100%;margin:0 auto}
+.cp-docbody h2{font-size:clamp(1.25rem,2.2vw,1.9rem)}
+.cp-docbody p.body{max-width:40rem}
+.cp-split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:32px;align-items:start}
+.cp-chart{background:#0a0e15;border:1px solid var(--hair);border-radius:2px;padding:10px}
+.cp-chart svg{display:block;width:100%;height:auto;max-height:58vh}
+.cp-tabs{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}
+.cp-sheet{all:unset;display:block;cursor:zoom-in;background:var(--bp);border:1px solid rgba(168,208,255,.35);border-radius:2px;width:fit-content;max-width:100%;margin:0 auto}
+.cp-sheet svg{display:block;width:auto;max-width:100%;height:calc(100vh - 250px);min-height:180px;max-height:760px}
+.cp-viewer{position:fixed;inset:0;z-index:40;background:rgba(4,8,14,.97);padding:calc(56px + env(safe-area-inset-top,0px)) 0 env(safe-area-inset-bottom,0px)}
+.cp-vscroll{width:100%;height:100%;overflow:auto;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y pinch-zoom}
+.cp-vscroll svg{display:block;width:max(100%,1500px);height:auto}
+.cp-vclose{position:absolute;top:calc(10px + env(safe-area-inset-top,0px));right:max(16px, env(safe-area-inset-right,0px))}
+.cp-bomsum{display:flex;flex-wrap:wrap;gap:10px 26px;margin:6px 0 14px}
+.cp-bomsum div{display:grid;gap:1px;padding-left:10px;border-left:1px solid var(--hair)}
+.cp-bomsum span{font-family:var(--f-mono);font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--steel)}
+.cp-bomsum b{font-family:var(--f-display);font-stretch:112%;font-weight:500;font-size:17px;font-variant-numeric:tabular-nums}
+.cp-bomg{column-count:2;column-gap:28px}
+.cp-bomg .fold{break-inside:avoid;border-top:0}
+.cp-bomg summary{display:grid !important;grid-template-columns:minmax(0,1fr) auto 4.5em 3.5em 14px;gap:10px}
+.cp-bomg summary em{font-style:normal;color:var(--steel);font-variant-numeric:tabular-nums;letter-spacing:.04em;text-align:right}
+.cp-doc .bline{display:grid;grid-template-columns:30px minmax(0,1fr) auto;gap:4px 10px;padding:7px 0;border-top:1px solid rgba(196,210,232,.07);font-size:12px;color:#c9d0da}
+.cp-doc .bline b{font-family:var(--f-mono);font-weight:500;color:var(--brass);font-size:10.5px}
+.cp-doc .bline small{display:block;font-size:10.5px;color:var(--steel);line-height:1.4;margin-top:2px}
+.cp-doc .bline i{font-style:normal;font-family:var(--f-mono);font-size:10.5px;text-align:right;white-space:nowrap;color:var(--paper)}
+.cp-more{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 28px;margin-top:18px}
+.cp-more .cp-fold[open]{grid-column:1/-1}
+.cp-fast{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:12px}
+.cp-fast th{text-align:left;font-family:var(--f-mono);font-weight:500;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--steel);padding:8px;border-bottom:1px solid var(--hair)}
+.cp-fast td{padding:7px 8px;border-bottom:1px solid rgba(196,210,232,.08);color:#c9d0da;vertical-align:top}
+.cp-fast td:first-child{font-family:var(--f-mono);color:var(--brass)}
+.cp-fast td.n{font-family:var(--f-mono);text-align:right;white-space:nowrap}
+.cp-fast td small{display:block;color:var(--steel);font-size:10.5px}
+.cp-fast tfoot td{color:var(--paper);font-family:var(--f-mono)}
+@media (max-width:860px){.cp-split{grid-template-columns:1fr;gap:14px}.cp-chart{order:-1}.cp-chart svg{max-height:32vh}.cp-bomg{column-count:1}.cp-more{grid-template-columns:1fr}.cp-sheet svg{height:auto;width:100%}}
+@media (max-width:720px){
+  .cp-bench{padding:10px 10px 8px}
+  .cp-bench h2,.cp-bench .eyebrow{display:none}
+  .cp-build h2,.cp-build .eyebrow{display:block}
+  .cp-build .body{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;font-size:11.5px}
+  .cp-seg button{padding:5px 6px;font-size:10px}
+  .cp-readout b{font-size:13px}.cp-readout .big b{font-size:17px}
+  .cp-verdict{font-size:10.5px}
+  .panel.cp{max-height:calc(100vh - 120px)}
+  html.cp-running .cp-seg,html.cp-running .cp-temp,html.cp-running .cp-row,html.cp-running .cp-verdict,html.cp-running .cp-fold{display:none}
+  .cp-doctabs button{padding:7px 8px;font-size:9px}
+  .cp-bomsum{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+  .cp-bomsum b{font-size:12.5px}.cp-bomsum span{font-size:7.5px;letter-spacing:.1em}
+  .cp-docbody p.body{font-size:11.5px}
+}
 </style>
 
 <style>
@@ -369,6 +485,63 @@ body.bp .tag{background:rgba(11,38,70,.85)}
     </div>
   </section>
 </main>
+<div class="cp-doc" id="cp-doc" hidden role="dialog" aria-label="Charpy tester reference">
+  <div class="cp-dochead">
+    <div class="cp-doctabs" id="cp-doctabs" role="tablist">
+      <button type="button" role="tab" data-t="why" aria-selected="true">Why it matters</button>
+      <button type="button" role="tab" data-t="drawings" aria-selected="false">Drawings</button>
+      <button type="button" role="tab" data-t="bom" aria-selected="false">Bill of materials</button>
+    </div>
+    <button class="btn" type="button" id="cp-docclose">Close</button>
+  </div>
+  <div class="cp-docbody">
+    <div class="cp-pane cp-split" data-t="why">
+      <div>
+        <h2>Strong is not the same as tough</h2>
+        <p class="body">A tensile test is slow and uses a smooth bar. Charpy is fast, notched and done at a chosen temperature: three conditions that push a metal toward brittle failure. It shows whether a material can absorb a sudden blow at a flaw, and steel grades are bought on the number.</p>
+        <details class="cp-fold"><summary>The ductile-to-brittle transition</summary>
+          <p class="body">Body-centred cubic steels change character over a narrow band of temperature. Above it they tear and absorb a lot of energy; below it they cleave like glass. Face-centred cubic aluminium has no such transition. Grey iron is brittle at every temperature, because its graphite flakes behave like ready-made cracks.</p></details>
+        <details class="cp-fold"><summary>Where the number is used</summary>
+          <p class="body">Structural steel grades carry their Charpy requirement in the name. Under EN 10025, <b>S355JR</b>, <b>J0</b> and <b>J2</b> each guarantee 27 J on a full-size specimen at +20 °C, 0 °C and −20 °C respectively. Weld procedures, pipelines and pressure equipment are qualified the same way, at the lowest temperature the part will see.</p></details>
+        <details class="cp-fold"><summary>Failures that made the test <span>3</span></summary>
+          <p class="body"><b>Liberty ships, 1943.</b> Hundreds of the all-welded wartime cargo ships cracked in cold seas, and a few broke clean in two. The <i>Schenectady</i> split at her fitting-out pier. The steel was strong enough; it was below its transition temperature.</p>
+          <p class="body"><b>RMS Titanic.</b> Charpy tests on recovered hull plate in the 1990s put its transition temperature well above the −2 °C water the ship sank in. At that temperature the plate behaved as a brittle material.</p>
+          <p class="body"><b>Design today.</b> The fix was not stronger steel but tougher steel: fine grain, low sulphur and phosphorus, controlled welding. Every one of those is checked with a pendulum like this one.</p></details>
+      </div>
+      <div class="cp-chart"><svg id="cp-dbtt" viewBox="0 0 560 330" role="img" aria-label="Energy versus temperature for the three materials"></svg>
+        <p class="note">Representative curves for 10 × 5 mm specimens; real values vary with the heat and rolling direction. Dots are the tests you run.</p></div>
+    </div>
+    <div class="cp-pane" data-t="drawings" hidden>
+      <div class="cp-tabs" id="cp-tabs" role="tablist" aria-label="Drawing sheets">
+        <button type="button" role="tab" aria-selected="true" data-s="0">01 · General arrangement</button>
+        <button type="button" role="tab" aria-selected="false" data-s="1">02 · Specimen</button>
+        <button type="button" role="tab" aria-selected="false" data-s="2">03 · Pendulum</button>
+        <button type="button" role="tab" aria-selected="false" data-s="3">04 · Striker and anvils</button>
+      </div>
+      <button class="cp-sheet" id="cp-sheet" type="button" aria-label="Open the drawing full size"></button>
+      <p class="note">Third-angle projection, millimetres. Tap the sheet to open it full size.</p>
+    </div>
+    <div class="cp-pane" data-t="bom" hidden>
+      <p class="body">Masses come from the geometry; costs are rough one-off shop estimates before labour. Open a group to see its parts.</p>
+      <div class="cp-bomsum" id="cp-bomsum"></div>
+      <div class="cp-bomg" id="cp-bomg"></div>
+      <div class="cp-more">
+        <details class="cp-fold"><summary>Fastener schedule <span id="cp-fcnt"></span></summary>
+          <p class="body">Counted from the model. Torques are for 12.9 screws, lightly oiled; use threadlocker where the build step says so.</p>
+          <table class="cp-fast" id="cp-fast"></table></details>
+        <details class="cp-fold"><summary>Specifications</summary><dl class="specs" id="cp-specsdl"></dl></details>
+        <details class="cp-fold"><summary>Build and calibration notes <span>5</span></summary>
+          <p class="body">1. Level the base to 0.1 mm/m before anything else. Bolt it to the bench through the four corner holes.</p>
+          <p class="body">2. Shim the pillow blocks until the shaft is level and square to the anvil faces. The striker edge must meet the specimen within ±0.5 mm of the span centre.</p>
+          <p class="body">3. Weigh the pendulum and find its centre of mass on a knife edge. Add or remove trim plugs until m·g·d·1.866 reads 50.0 J.</p>
+          <p class="body">4. Do a free swing with no specimen and record the rise. That loss, about 0.1 J, is subtracted from every result. Then verify against certified reference specimens.</p>
+          <p class="body">5. The guard interlock cuts the release when the door is open. Never reach into the swing zone while the pendulum is latched.</p></details>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="cp-viewer" id="cp-viewer" hidden><button class="btn cp-vclose" id="cp-vclose" type="button">Close</button><div class="cp-vscroll" id="cp-vscroll"></div></div>
+
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/environments/RoomEnvironment.js"></script>
@@ -3396,6 +3569,8 @@ const MODELS = [
     desc:'A printed rotary indexing table: a steady motor turns the drive wheel; its roller steps the slotted wheel one station and its locking disc holds it dead still until the next turn.' },
   { id:'atom',     disc:'Mechanism design',      title:'Cam-Driven Pen Plotter', short:'Cam plotter',
     desc:'One motor, one camshaft, no code in the drawing: three cams steer the pen and lift the paper, and a Geneva drive turns it 60° between orbits.' },
+  { id:'charpy',   disc:'Materials testing',     title:'Charpy Impact Tester', short:'Charpy tester',
+    desc:'A buildable 50 J benchtop pendulum that breaks a notched bar in one swing and reads the energy it took: steel frame, ground tool-steel striker and anvils, a latch, a band brake, a dial and a 14-bit encoder.' },
 ];
 const HOW = {
   walker:   ['Four modules, one crankshaft', 'Each module carries a mirrored pair of Jansen legs on one crank throw. Crank webs lock the four modules at different phase angles, so at every moment some feet are in their flat stance and the body stays supported.'],
@@ -3406,6 +3581,7 @@ const HOW = {
   cell:     ['Five stations, one motor per cycle', 'Pallets carry each motor housing round a two-lane conveyor through five stations: load and scan, bushing press, armature insertion, end cap and screws, then test, mark and unload.'],
   stirling: ['Low friction is the whole game', 'Hot water warms the bottom plate. The foam displacer shuttles air between the hot and cold plates so its pressure rises and falls, and the latex diaphragm turns that pressure swing into work on the crankshaft. The flywheel carries it round the cycle.'],
   geneva:   ['Print it, press two shafts, plug it in', 'The drive wheel turns at a steady speed. Once per turn its roller enters a slot and steps the wheel one station; for the rest of the turn the locking disc sits in the wheel\u2019s concave arc and holds the table still.'],
+  charpy:   ['One swing, one number', 'The 8 kg hammer is latched at 150° and let go. It breaks the bar at the bottom of its arc and swings on up the other side; whatever energy the bar absorbed is missing from that rise. E₀ = m·g·d·(1 − cos 150°) = 49.95 J, and the striker sits at the 390 mm centre of percussion so the blow puts no shock into the bearings.'],
   atom:     ['Press start, get an atom', 'A single camshaft carries the whole drawing. The X and Y cams rock the followers that steer the pen gantry, a face cam lifts the paper, and a Geneva drive turns the paper 60° between orbits.'],
 };
 // assembly names and what each one does, per project
@@ -3466,6 +3642,19 @@ const ROLES = {
     'Geneva mechanism':'Drive wheel with its roller pin, and the slotted Geneva wheel that it steps one slot per turn.',
     Turntable:'The indexing table on the Geneva wheel, with station marks and workpieces in their nests.',
     'Motor & drive':'Gearmotor, bracket and coupler, steel shafts and 608 bearings.' },
+  charpy:{ 'Base plate & feet':'A 16 mm S355 plate on four levelling feet. The mass is deliberate: the frame should not move when it is struck.',
+    'Columns':'Two 60 mm box-section columns welded to flanges and top plates, with gussets at the foot.',
+    'Pillow blocks':'UCP204 bearings on shimmed top plates carry the Ø20 hardened pivot shaft.',
+    'Pendulum':'Split clamp hub, Ø32 arm tube and a Ø194 C-shaped hammer with brass trim plugs: 8.0 kg, 341 mm to the centre of mass.',
+    'Striker insert':'D2 tool steel at 60 HRC with the ISO 148-1 2 mm radius and 30° edge, screwed into the back of the hammer mouth.',
+    'Anvils & supports':'Ground D2 anvils at a 40 mm span and supports that set the bar height, dowelled to two bed blocks.',
+    'Latch & release':'A hardened tooth on the hub rests on a spring pawl. A safety pin blocks it; the red lever rocks it clear.',
+    'Band brake':'A Ø110 drum on the shaft with a lined band and a hand lever stops the swing after the reading.',
+    'Dial & drag pointer':'A dial printed in joules; a dog on the shaft pushes the friction pointer up to the highest point reached.',
+    'Encoder':'AS5048A 14-bit magnetic encoder on the shaft end: 0.022° per count, under 0.01 J.',
+    'Controller':'ESP32 and OLED. It subtracts the measured friction and windage loss from each result.',
+    'Catch tray':'Steel tray with a rubber mat that catches the broken halves.',
+    'Specimen':'10 × 5 × 55 mm half-width V-notch bar, 2 mm deep with a 0.25 mm root.' },
   atom:{ Base:'Base plate, cover and feet.', 'Geneva table drive':'Drive wheel, Geneva wheel, pin and rollers that turn the paper 60° between orbits.',
     'Cam stack':'The X, Y and face cams on one shaft. Their profiles are the drawing program.', 'Motor & camshaft':'Motor, bracket, gears, camshaft, output shaft and bearings.',
     'Rocking followers':'X and Y rockers with rollers that ride the cams; their arms steer the gantry.', 'Paper lift':'Lever, roller and bracket that lift the paper away from the pen, driven by the face cam.',
@@ -3529,6 +3718,15 @@ const SCENES = {
      body:'The roller is placed so it meets each slot travelling straight along it. The wheel starts from rest with no impact, accelerates and stops smoothly, and the drive radius follows directly from the centre distance and the number of slots.'},
     {label:'Indexing table', parts:['turntable_6','table_marks_6','workpieces_6'], dir:[-0.45,0.75,0.8], zoom:2.7, mex:0, title:'Locked between moves',
      body:'Between steps the locking disc sits in the wheel’s concave arc, so a tool or a hand cannot push the table off station. That positive lock is why a Geneva table can index work under a press or a drill.'} ],
+  charpy:[
+    {label:'C-hammer & striker', parts:['pend','striker'], dir:[0.45,0.3,1], zoom:2.1, mex:0, title:'C-hammer and striker',
+     body:'A 32 mm steel disc with a mouth cut in its leading edge. The bar enters the mouth and meets the D2 striker at the back of it, right on the arm centre line, as the arm passes vertical. Three brass plugs trim the hammer to exactly 50.0 J at calibration.'},
+    {label:'Anvils & supports', parts:['anvil'], dir:[0.42,0.86,0.3], zoom:1.6, mex:0, title:'Anvils, 40 mm apart',
+     body:'The bar lies notch-away on two ground supports, backed by two D2 anvils with R1 edges and an 11° taper. The striker pushes the middle of the bar into the 40 mm gap; the two bed blocks leave a clear channel for the hammer jaw to pass underneath.'},
+    {label:'Latch & brake', parts:['latch','brake'], dir:[0.4,0.32,-0.86], zoom:1.25, mex:0, title:'Latch, pin and brake',
+     body:'A hardened tooth on the hub catch plate rests on a spring-loaded pawl. A safety pin blocks the pawl until it is pulled; the red release lever then rocks it clear and the hammer falls. After the reading, a band brake on the shaft stops the swing.'},
+    {label:'Dial & encoder', parts:['dial','enc'], dir:[-0.34,0.16,1], zoom:1.9, mex:0, title:'Dial and encoder',
+     body:'Two independent readings. On the follow-through a dog on the shaft pushes a friction drag pointer up the dial, which is printed in joules from E = E₀ − m·g·d·(1 − cos β). A 14-bit encoder on the shaft end reads to under 0.01 J for the controller.'} ],
   atom:[
     {label:'Cam stack', parts:['cam_x','cam_y','face_cam','camshaft'], dir:[0.75,0.35,0.7], zoom:2.0, mex:0.15, title:'The program is the cams',
      body:'Each cam profile was synthesised from the pen path it has to draw. The drawing lives in three cams keyed to one shaft, so it can never drift out of step, and changing the picture means printing new cams.'},
@@ -3539,7 +3737,7 @@ const SCENES = {
 };
 const SPACING = 900, R0 = 120;
 const JANSEN_LS = 400/470;                       // world units between projects; every model is scaled to this radius
-const ORDER = ['helio','cell','arm','aero','hydro','walker','jansen','geneva','stirling','atom'];   // project numbering and menu order
+const ORDER = ['helio','cell','arm','aero','hydro','walker','jansen','geneva','stirling','atom','charpy'];   // project numbering and menu order
 const pnum = id => String(ORDER.indexOf(id) + 1).padStart(2, '0');
 MODELS.forEach((M, i) => { M.num = pnum(M.id); M.x = (i + 1) * SPACING; M.ready = false; M.exFit = 1.6; });
 const MODEL = Object.fromEntries(MODELS.map(M => [M.id, M]));
@@ -3611,6 +3809,69 @@ const SPECS = [
 ];
 $('#specs-dl').innerHTML = SPECS.map(([k,v])=>`<div><dt>${k}</dt><dd>${v}</dd></div>`).join('');
 
+// the Charpy project's own stops: run a test, build it, reference documents
+const CHARPY_SECS = `
+  <section id="charpy-test" class="sec" data-orbit="1" data-proj="charpy">
+    <div class="panel right cp">
+      <div class="cp-bench">
+        <p class="eyebrow">Charpy tester · run a test</p>
+        <h2>Break three materials</h2>
+        <div class="cp-seg" id="cp-seg" role="group" aria-label="Material">
+          <button data-m="steel" aria-pressed="true" style="--mc:#9fb3c8">A36 steel<small>structural, BCC</small></button>
+          <button data-m="alu" aria-pressed="false" style="--mc:#d3a65c">6061-T6<small>aluminium, FCC</small></button>
+          <button data-m="iron" aria-pressed="false" style="--mc:#c8645a">Grey iron<small>cast, flake</small></button>
+        </div>
+        <label class="cp-temp"><span>Temp</span><input type="range" id="cp-temp" min="-40" max="60" step="5" value="20"><output id="cp-tempo">20 °C</output></label>
+        <div class="cp-row">
+          <button class="btn solid" id="cp-go" type="button">Release hammer</button>
+          <label class="cp-chk"><input type="checkbox" id="cp-slow" checked> Slow-mo</label>
+        </div>
+        <p class="cp-status" id="cp-status">Latched · specimen loaded</p>
+        <div class="cp-readout">
+          <div class="big"><span>Absorbed energy KV</span><b id="cp-kv">—<small>J</small></b></div>
+          <div><span>Rise β</span><b id="cp-b">—</b></div>
+          <div><span>Shear</span><b id="cp-sh">—</b></div>
+          <div><span>Lat. exp.</span><b id="cp-le">—</b></div>
+        </div>
+        <p class="cp-verdict" id="cp-verdict">The hammer leaves the latch with 49.95 J. Watch how much of it each bar takes.</p>
+        <details class="cp-fold"><summary>Fracture faces and recent runs</summary>
+          <div class="cp-macros" id="cp-macros"></div>
+          <div class="cp-runs" id="cp-runs"></div>
+        </details>
+      </div>
+    </div>
+  </section>
+  <section id="charpy-build" class="sec" data-orbit="1" data-proj="charpy">
+    <div class="panel right cp">
+      <div class="cp-bench cp-build">
+        <p class="eyebrow" id="cp-bn">Assembly · step 1 of 9</p>
+        <h2 id="cp-bt">Base and feet</h2>
+        <p class="body" id="cp-bb"></p>
+        <details class="cp-fold" id="cp-bfold"><summary>Parts, fasteners and tools <span id="cp-bcnt"></span></summary>
+          <ul class="cp-parts" id="cp-bi"></ul>
+          <p class="cp-tool" id="cp-btool"></p>
+        </details>
+        <div class="cp-row cp-stepper">
+          <button class="btn" id="cp-bprev" type="button">← Back</button>
+          <div class="cp-dots" id="cp-bdots"></div>
+          <button class="btn solid" id="cp-bnext" type="button">Next step →</button>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section id="charpy-docs" class="sec" data-orbit="1" data-proj="charpy">
+    <div class="panel right cp">
+      <p class="eyebrow">Charpy tester · reference</p>
+      <h2>Drawings, parts and the why</h2>
+      <p class="body">Four dimensioned sheets, a costed bill of materials with every fastener counted from the model, and why a notched bar on a pendulum decides which steel gets used.</p>
+      <div class="cp-docbtns">
+        <button class="btn" type="button" data-cpdoc="why">Why it matters</button>
+        <button class="btn" type="button" data-cpdoc="drawings">Drawings</button>
+        <button class="btn" type="button" data-cpdoc="bom">Bill of materials</button>
+      </div>
+    </div>
+  </section>`;
+
 // one chapter of three stops per project, inserted before the contact stop
 const sectionsHTML = MODELS.map(M => `
   <section id="${M.id}" class="sec" data-orbit="1" data-proj="${M.id}">
@@ -3636,7 +3897,7 @@ ${SCENES[M.id].map((sc,i,a)=>`  <section id="${M.id}-detail-${i+1}" class="sec" 
       <p class="body">${esc(sc.body)}</p>${sc.phases ? `
       <ol class="phases" id="ph-${M.id}-${i}">${sc.phases.map(p=>`<li>${esc(p[0])}</li>`).join('')}</ol>` : ''}
     </div>
-  </section>`).join('\n')}
+  </section>`).join('\n')}${M.id==='charpy' ? CHARPY_SECS : ''}
   <section id="${M.id}-anatomy" class="sec" data-orbit="1" data-proj="${M.id}">
     <div class="panel top">
       <p class="eyebrow">${esc(M.short)} · anatomy</p>
@@ -3652,6 +3913,1273 @@ ${SCENES[M.id].map((sc,i,a)=>`  <section id="${M.id}-detail-${i+1}" class="sec" 
     </div>
   </section>`).join('');
 $('#contact').insertAdjacentHTML('beforebegin', sectionsHTML);
+/* ================= Project 11: Charpy impact tester (procedural model, built here rather than loaded) ================= */
+function makeCharpy(){
+const V3 = THREE.Vector3, DEG = Math.PI / 180;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const lerp = (a, b, t) => a + (b - a) * t;
+const smooth = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+const MATKEY = new Map();
+let blueprint = false;
+const view = { build: 0 };
+// ---------- design data (from the sizing calculation) ----------
+const G = {
+  pivotY: 502.5,          // pivot above the base top
+  L: 390,                 // pivot to striker edge = centre of percussion
+  hamC: 386.75, hamR: 97, hamT: 32.3, mouthH: 34, mouthBack: -36,
+  specY: 110, specB: 5, specW: 10, specLen: 55, notch: 2, span: 40,
+  colX: 74, baseW: 360, baseL: 1000, baseT: 16,
+  guardX: 170, guardZ: 490, guardH: 960,
+};
+const PH = { M: 8.0039, d: 0.34093, I: 1.0641, L: 0.390, alpha: 150 * DEG, loss: 0.10, g: 9.81 };
+PH.mgd = PH.M * PH.g * PH.d;                       // 26.77 N·m
+PH.E0 = PH.mgd * (1 - Math.cos(PH.alpha));         // 49.95 J
+PH.v0 = Math.sqrt(2 * PH.E0 / PH.I) * PH.L;        // 3.78 m/s at the striker
+const energyAt = beta => PH.mgd * (Math.cos(beta) - Math.cos(PH.alpha)) - PH.loss;   // absorbed energy from the rise angle
+const betaFor = E => Math.acos(clamp(1 - (PH.E0 - PH.loss - E) / PH.mgd, -1, 1));
+
+// ---------- materials under test (half-width 10 x 5 mm KV2, representative) ----------
+const tanhCurve = (T, us, ls, T0, C) => ls + (us - ls) * (1 + Math.tanh((T - T0) / C)) / 2;
+const MATS = {
+  steel: { name: 'A36 steel', short: 'A36', col: 0x9fb3c8, css: '#9fb3c8', bar: 0x9aa1a8, lattice: 'BCC',
+    E: T => tanhCurve(T, 40, 2.0, 5, 18),
+    shear: E => clamp((E - 2) / 38, 0, 1),
+    le: E => 0.018 * E },
+  alu: { name: '6061-T6 aluminium', short: '6061-T6', col: 0xd3a65c, css: '#d3a65c', bar: 0xcdd2d8, lattice: 'FCC',
+    E: T => tanhCurve(T, 8.4, 7.6, -60, 80), shear: () => 1, le: () => 0.20 },
+  iron: { name: 'Grey cast iron', short: 'Grey iron', col: 0xc8645a, css: '#c8645a', bar: 0x5c6066, lattice: 'flake graphite',
+    E: T => tanhCurve(T, 1.7, 1.3, 40, 60), shear: () => 0, le: () => 0.02 },
+};
+// how far the striker travels into the bar before it separates (mm), and how far the halves bend first
+const breakTravel = E => 0.25 + 0.38 * E;
+
+
+// ---------- materials ----------
+const std = (color, roughness, metalness, extra = {}) => new THREE.MeshStandardMaterial(Object.assign({ color, roughness, metalness, envMapIntensity: metalness > .5 ? .9 : .5 }, extra));
+const MAT = {
+  paint: std(0x3a4a5e, .48, .3),         // frame enamel
+  base: std(0x24282e, .58, .4),
+  machined: std(0xb4bbc3, .26, .9),
+  ground: std(0xa3abb3, .2, .95),
+  tool: std(0x80878f, .26, .92),        // hardened tool steel
+  dark: std(0x2a2d32, .45, .7),
+  castiron: std(0x3d434b, .62, .45),
+  black: std(0x141619, .55, .25),
+  rubber: std(0x0f1012, .92, 0),
+  brass: std(0xc9a25a, .28, .92),
+  red: std(0xb3261e, .42, .1),
+  alu: std(0x8f98a2, .36, .85),
+  extr: std(0x202429, .45, .6),
+  anod: std(0x2c3036, .4, .7),
+  pcb: std(0x1c5c39, .55, .1),
+  chip: std(0x111317, .4, .3),
+  pc: new THREE.MeshPhysicalMaterial({ color: 0xd8e6f4, roughness: .06, metalness: 0, transparent: true, opacity: .06, depthWrite: false, side: THREE.DoubleSide }),
+  band: std(0x5b4636, .8, .1),
+  wood: std(0x15181d, .7, .2),
+};
+for (const m of Object.values(MAT)) m.envMapIntensity = m.metalness > .5 ? .9 : .5;
+MAT.pc.envMapIntensity = .25;
+
+// ---------- part registry ----------
+const PARTS = [];
+const ASM = {};      // assembly id -> {label, n, ex (exploded offset, in its parent's space), parts:[]}
+function asm(id, n, label, sub, ex) { ASM[id] = { id, n, label, sub, ex: new V3(...ex), parts: [] }; }
+asm('base', '01', 'Base plate & feet', '360 × 1000 × 16 S355', [0, -170, 0]);
+asm('frame', '02', 'Columns', 'SHS 60 × 60 × 5, gussets', [0, 0, 0]);
+asm('bear', '03', 'Pillow blocks', 'UCP204, Ø20', [0, 130, 0]);
+asm('pend', '04', 'Pendulum', 'hub, arm, C-hammer', [0, 0, 0]);
+asm('striker', '05', 'Striker insert', 'D2, R2, 30°', [0, 0, 0]);
+asm('anvil', '06', 'Anvils & supports', 'D2 58 HRC, 40 mm span', [0, 0, 0]);
+asm('latch', '07', 'Latch & release', 'catch plate, pawl, lever', [0, 0, 0]);
+asm('brake', '08', 'Band brake', 'Ø110 drum', [0, 0, 0]);
+asm('dial', '09', 'Dial & drag pointer', '0–50 J', [210, 0, 0]);
+asm('enc', '10', 'Encoder', 'AS5048A 14-bit', [-200, 0, 0]);
+asm('ctrl', '11', 'Controller', 'ESP32 + OLED', [140, 90, -60]);
+asm('tray', '12', 'Catch tray', 'steel, rubber mat', [0, -40, 240]);
+asm('guard', '13', 'Guard', 'extrusion + 4 mm PC', [0, 0, 0]);
+asm('spec', '14', 'Specimen', '10 × 5 × 55 V-notch', [0, 0, 0]);
+const STEP_OF = { base: 1, frame: 2, anvil: 3, bear: 4, pend: 5, striker: 5, latch: 6, brake: 6, dial: 7, enc: 7, ctrl: 7, guard: 8, tray: 8 };
+function add(parent, geo, mat, pos, a, opt = {}) {
+  const m = new THREE.Mesh(geo, mat);
+  if (pos) m.position.copy(pos);
+  if (opt.rot) m.rotation.set(...opt.rot);
+  m.castShadow = opt.shadow !== false; m.receiveShadow = true;
+  m.userData = { asm: a, base: m.position.clone(), ex: opt.ex ? new V3(...opt.ex) : (ASM[a] ? ASM[a].ex.clone() : new V3()), mat, step: opt.step ?? STEP_OF[a] ?? 1 };
+  if (!geo.userData.part) geo.userData.part = { name: a, group: ASM[a] ? ASM[a].label : 'Parts', material: MATKEY.get(mat) || null };
+  parent.add(m); PARTS.push(m); if (ASM[a]) ASM[a].parts.push(m);
+  return m;
+}
+
+[['paint','paint'],['base','paint'],['machined','steel'],['ground','bearing'],['tool','tool_steel'],['dark','alu_black'],['castiron','cast_iron'],
+ ['black','bolt'],['rubber','rubber'],['brass','brass'],['red','estop'],['alu','alu'],['anod','alu_black'],['pcb','pcb'],['chip','ferrite'],['band','belt']]
+  .forEach(([k, f]) => { if (MAT[k]) MATKEY.set(MAT[k], f); });
+const P = (x, y, z) => new V3(x, y, z);
+const FMAT_ZN = std(0xb4bac1, .34, .85); MATKEY.set(FMAT_ZN, 'steel_zn');
+const box = (w, h, d) => new THREE.BoxGeometry(w, h, d);
+const cylX = (r, len, seg = 40) => new THREE.CylinderGeometry(r, r, len, seg).rotateZ(Math.PI / 2);
+const cylY = (r, len, seg = 40) => new THREE.CylinderGeometry(r, r, len, seg);
+const cylZ = (r, len, seg = 40) => new THREE.CylinderGeometry(r, r, len, seg).rotateX(Math.PI / 2);
+const tubeX = (ro, ri, len, seg = 48) => { const s = new THREE.Shape(); s.absarc(0, 0, ro, 0, Math.PI * 2, false); const h = new THREE.Path(); h.absarc(0, 0, ri, 0, Math.PI * 2, true); s.holes.push(h);
+  return new THREE.ExtrudeGeometry(s, { depth: len, bevelEnabled: false, curveSegments: seg }).translate(0, 0, -len / 2).rotateY(Math.PI / 2); };
+// a profile drawn in the Y–Z plane (s = forward/Z, t = up/Y), extruded along X, centred on x = 0
+function extrudeYZ(pts, depth, bevel = 0, seg = 24) {
+  const sh = new THREE.Shape(pts.map(([s, t]) => new THREE.Vector2(-s, t)));
+  const g = new THREE.ExtrudeGeometry(sh, { depth: depth - 2 * bevel, bevelEnabled: bevel > 0, bevelSize: bevel, bevelThickness: bevel, bevelSegments: 2, curveSegments: seg });
+  g.translate(0, 0, -(depth - 2 * bevel) / 2); g.rotateY(Math.PI / 2); return g;
+}
+// a profile drawn in the X–Z plane, extruded up Y from y = 0 to y = h
+function extrudeXZ(pts, h, bevel = 0) {
+  const sh = new THREE.Shape(pts.map(([x, z]) => new THREE.Vector2(x, -z)));
+  const g = new THREE.ExtrudeGeometry(sh, { depth: h - 2 * bevel, bevelEnabled: bevel > 0, bevelSize: bevel, bevelThickness: bevel, bevelSegments: 1 });
+  g.rotateX(-Math.PI / 2); if (bevel) g.translate(0, bevel, 0); return g;
+}
+const arcPts = (cx, cy, r, a0, a1, n) => Array.from({ length: n + 1 }, (_, i) => { const a = a0 + (a1 - a0) * i / n; return [cx + r * Math.cos(a), cy + r * Math.sin(a)]; });
+
+// hammer outline in the swing plane, pivot at the origin, hanging: s forward (+Z), t up (+Y)
+function hammerOutline() {
+  const { hamC: C, hamR: R, mouthH, mouthBack, L } = G;
+  const tTop = -L + mouthH / 2, tBot = -L - mouthH / 2;
+  const sTop = Math.sqrt(R * R - (tTop + C) ** 2), sBot = Math.sqrt(R * R - (tBot + C) ** 2);
+  const a0 = Math.atan2(tTop + C, sTop), a1 = Math.atan2(tBot + C, sBot) + Math.PI * 2;
+  return [...arcPts(0, -C, R, a0, a1, 96), [mouthBack + 3, tBot], [mouthBack, tBot + 3], [mouthBack, tTop - 3], [mouthBack + 3, tTop]];
+}
+// striker insert in the X–Z plane (hanging): tip at z = 0, 30° included angle, R2 edge
+function strikerProfile() {
+  const r = 2, half = 15 * DEG, w = 8, cz = -r;
+  const x0 = r * Math.cos(half), z0 = cz + r * Math.sin(half);      // flank tangent point
+  const zFlank = z0 - (w - x0) / Math.tan(half);                      // flank reaches full width here (≈ −24 mm)
+  const pts = [[-w, G.mouthBack], [w, G.mouthBack], [w, zFlank]];
+  for (let i = 0; i <= 12; i++) { const a = (15 + 150 * i / 12) * DEG; pts.push([r * Math.cos(a), cz + r * Math.sin(a)]); }
+  pts.push([-w, zFlank]);
+  return { pts, zFlank };
+}
+
+
+/* ================= build the machine ================= */
+const machine = new THREE.Group();
+const fixed = new THREE.Group(); machine.add(fixed);
+
+// 01 base plate with levelling feet
+add(fixed, box(G.baseW, G.baseT, G.baseL), MAT.base, P(0, -G.baseT / 2, 0), 'base');
+for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
+  add(fixed, cylY(24, 6), MAT.rubber, P(sx * 150, -25, sz * 460), 'base', { ex: [0, -230, 0] });
+  add(fixed, cylY(10.5, 4.5, 6), FMAT_ZN, P(sx * 150, -18.5, sz * 460), 'base', { ex: [0, -230, 0] });
+  add(fixed, cylY(6, 14, 16), MAT.machined, P(sx * 150, -18, sz * 460), 'base', { ex: [0, -230, 0] });
+  add(fixed, cylY(9.5, 6, 6), MAT.machined, P(sx * 150, 3, sz * 460), 'base', { ex: [0, -170, 0] });
+}
+
+// 02 columns: SHS on a flange, gussets, top plate
+const shs = (() => { const s = new THREE.Shape([[-30, -30], [30, -30], [30, 30], [-30, 30]].map(p => new THREE.Vector2(...p)));
+  const h = new THREE.Path([[-25, -25], [-25, 25], [25, 25], [25, -25]].map(p => new THREE.Vector2(...p))); s.holes.push(h);
+  return new THREE.ExtrudeGeometry(s, { depth: 449, bevelEnabled: false }).rotateX(-Math.PI / 2); })();
+const gusset = extrudeYZ([[0, 0], [52, 0], [0, 70]], 8);
+for (const sx of [-1, 1]) {
+  const X = sx * G.colX, ex = [sx * 190, 0, 0];
+  add(fixed, box(120, 10, 120), MAT.paint, P(X, 5, 0), 'frame', { ex });
+  add(fixed, shs, MAT.paint, P(X, 10, 0), 'frame', { ex });
+  add(fixed, box(70, 10, 150), MAT.paint, P(X, 464, 0), 'frame', { ex });
+  for (const sz of [-1, 1]) { const gm = add(fixed, gusset, MAT.paint, P(X, 10, sz * 30), 'frame', { ex }); if (sz < 0) gm.rotation.y = Math.PI; }
+}
+
+// 03 pillow blocks UCP204 (shaft height 33.3 mm), grease nipple, bolts
+for (const sx of [-1, 1]) {
+  const X = sx * G.colX, ex = [sx * 60, 150, 0], y0 = 469;
+  add(fixed, box(38, 14, 127), MAT.castiron, P(X, y0 + 7, 0), 'bear', { ex });
+  add(fixed, box(38, 22, 66), MAT.castiron, P(X, y0 + 22, 0), 'bear', { ex });
+  add(fixed, cylX(31, 38, 48), MAT.castiron, P(X, G.pivotY, 0), 'bear', { ex });
+  add(fixed, cylX(17.5, 43, 40), MAT.machined, P(X, G.pivotY, 0), 'bear', { ex });          // insert inner ring
+  add(fixed, cylY(2.6, 9, 10), MAT.brass, P(X, G.pivotY + 34, 0), 'bear', { ex });           // grease nipple
+}
+
+// 06 anvil bed, supports and anvils (fixed)
+const anvilProfile = sx => {      // X–Z profile: inner edge at |x| = 20, z = 10, R1 corner, 11° taper going back
+  const arc = arcPts(21, 11, 1, Math.PI, Math.PI * 1.5, 6);
+  const raw = [[20 + 24 * Math.tan(11 * DEG), 34], ...arc, [40, 10], [40, 34]];
+  return raw.map(([x, z]) => [sx * x, z]);
+};
+for (const sx of [-1, 1]) {
+  const ex = (v) => [sx * v[0], v[1], v[2]];
+  add(fixed, box(20, 90, 80), MAT.paint, P(sx * 28, 45, 20), 'anvil', { ex: ex([60, 0, 0]) });
+  add(fixed, box(22, 20, 22), MAT.ground, P(sx * 29, 100, -1), 'anvil', { ex: ex([30, 60, -40]) });
+  const pr = anvilProfile(sx); if (sx < 0) pr.reverse();
+  add(fixed, extrudeXZ(pr, 35), MAT.ground, P(0, 90, 0), 'anvil', { ex: ex([30, 90, 40]) });
+  for (const yy of [30, 70]) add(fixed, cylZ(6.5, 5, 6), MAT.machined, P(sx * 28, yy, -21.5), 'anvil', { ex: ex([60, 0, 0]) });
+}
+
+// 12 catch tray with rubber mat (kept outside the hammer's sweep)
+add(fixed, box(300, 2, 290), MAT.paint, P(0, 1, 285), 'tray');
+add(fixed, box(296, 3, 286), MAT.rubber, P(0, 3.5, 285), 'tray');
+for (const sx of [-1, 1]) add(fixed, box(2, 20, 290), MAT.paint, P(sx * 150, 10, 285), 'tray');
+add(fixed, box(300, 20, 2), MAT.paint, P(0, 10, 430), 'tray');
+
+// 13 guard: 20x20 extrusion frame, polycarbonate panels, door with interlock
+const gx = G.guardX, gz = G.guardZ, gh = G.guardH;
+const ext = MAT.extr;
+for (const sx of [-1, 1]) for (const sz of [-1, 0, 1]) add(fixed, box(20, gh, 20), ext, P(sx * gx, gh / 2, sz * gz), 'guard', { ex: [sx * 260, 0, sz * 200] });
+for (const y of [10, gh - 10]) {
+  for (const sx of [-1, 1]) add(fixed, box(20, 20, 2 * gz), ext, P(sx * gx, y, 0), 'guard', { ex: [sx * 260, 0, 0] });
+  for (const sz of [-1, 1]) add(fixed, box(2 * gx, 20, 20), ext, P(0, y, sz * gz), 'guard', { ex: [0, 0, sz * 260] });
+}
+for (const sx of [-1, 1]) add(fixed, box(4, gh - 20, 2 * gz - 20), MAT.pc, P(sx * gx, gh / 2, 0), 'guard', { ex: [sx * 260, 0, 0], shadow: false });
+for (const sz of [-1, 1]) add(fixed, box(2 * gx - 20, gh - 20, 4), MAT.pc, P(0, gh / 2, sz * gz), 'guard', { ex: [0, 0, sz * 260], shadow: false });
+add(fixed, box(2 * gx - 20, 4, 2 * gz - 20), MAT.pc, P(0, gh, 0), 'guard', { ex: [0, 260, 0], shadow: false });
+add(fixed, box(6, 18, 140), ext, P(gx + 6, 420, 120), 'guard', { ex: [260, 0, 0] });      // door handle rail
+add(fixed, box(22, 40, 26), MAT.red, P(gx + 12, 300, 300), 'guard', { ex: [260, 0, 0] });  // interlock switch
+add(fixed, box(8, 520, 4), ext, P(gx + 3, 280, -10), 'guard', { ex: [260, 0, 0] });        // door edge
+add(fixed, box(8, 520, 4), ext, P(gx + 3, 280, 400), 'guard', { ex: [260, 0, 0] });
+
+// 10 encoder bracket + board on the −x end, 09 dial on the +x end (both fixed)
+add(fixed, box(6, 90, 50), MAT.anod, P(-176, G.pivotY - 10, 0), 'enc');
+add(fixed, box(70, 6, 50), MAT.anod, P(-142, G.pivotY - 58, 0), 'enc');
+add(fixed, box(2, 40, 40), MAT.pcb, P(-160, G.pivotY, 0), 'enc');
+add(fixed, box(2, 6, 6), MAT.black, P(-158.6, G.pivotY, 0), 'enc');
+for (const sy of [-1, 1]) for (const sz of [-1, 1]) add(fixed, cylX(2.2, 15, 8), MAT.brass, P(-168, G.pivotY + sy * 15, sz * 15), 'enc');
+// dial plate, bezel and its bracket off the +x column
+add(fixed, box(16, 12, 40), MAT.anod, P(110, 440, 0), 'dial');
+add(fixed, box(4, 80, 40), MAT.anod, P(113, 470, 0), 'dial');
+add(fixed, cylX(88, 3, 96), MAT.alu, P(118, G.pivotY, 0), 'dial');
+add(fixed, new THREE.TorusGeometry(87, 2.4, 10, 96).rotateY(Math.PI / 2), MAT.dark, P(120, G.pivotY, 0), 'dial');
+const dialTex = makeDialTexture();
+add(fixed, new THREE.CircleGeometry(84, 96).rotateY(Math.PI / 2), std(0xffffff, .55, .1, { map: dialTex }), P(119.8, G.pivotY, 0), 'dial', { shadow: false });
+
+// 11 controller with OLED, cable from the encoder
+add(fixed, box(40, 70, 120), MAT.black, P(120, 35, -400), 'ctrl');
+const oled = makeOled();
+add(fixed, new THREE.PlaneGeometry(64, 34).rotateY(Math.PI / 2), new THREE.MeshBasicMaterial({ map: oled.tex, toneMapped: false }), P(140.4, 44, -400), 'ctrl', { shadow: false });
+for (let i = 0; i < 3; i++) add(fixed, cylX(4, 4, 16), [MAT.red, MAT.machined, MAT.machined][i], P(141, 14, -440 + i * 16), 'ctrl');
+{ const c = new THREE.CatmullRomCurve3([P(-160, G.pivotY - 24, 10), P(-168, 420, 34), P(-110, 260, 40), P(-60, 6, 60), P(60, 6, -200), P(100, 12, -380)]);
+  add(fixed, new THREE.TubeGeometry(c, 90, 2.6, 8), MAT.black, null, 'ctrl', { shadow: false }); }
+
+// 08 brake band, anchor and lever (fixed side)
+add(fixed, new THREE.TorusGeometry(57.5, 2.4, 6, 64, Math.PI * 1.7).rotateY(Math.PI / 2).rotateX(-Math.PI * .35), MAT.band, P(-128, G.pivotY, 0), 'brake', { ex: [-160, 0, 0] });
+add(fixed, box(20, 14, 40), MAT.paint, P(-128, G.pivotY - 70, -40), 'brake', { ex: [-160, 0, 0] });
+const brakeLever = add(fixed, box(10, 170, 12), MAT.paint, P(-128, G.pivotY - 150, -58), 'brake', { ex: [-160, 0, 0] });
+add(fixed, cylX(9, 30, 20), MAT.red, P(-128, G.pivotY - 240, -58), 'brake', { ex: [-160, 0, 0] });
+
+// 07 latch on the −x column: bracket, pawl on a cross-shaft, safety pin, red release handle outside the guard
+const latchY = G.pivotY + 70, latchZ = -36;
+add(fixed, box(16, 64, 40), MAT.paint, P(-44, latchY - 24, latchZ - 10), 'latch', { ex: [-120, 110, -40] });
+add(fixed, box(16, 48, 30), MAT.paint, P(-44, 493, -50), 'latch', { ex: [-120, 110, -40] });
+add(fixed, cylX(5, 175, 16), MAT.machined, P(-118, latchY, latchZ), 'latch', { ex: [-120, 110, -40] });
+add(fixed, cylX(13, 12, 24), MAT.red, P(-210, latchY, latchZ), 'latch', { ex: [-120, 110, -40] });
+add(fixed, box(10, 70, 12), MAT.red, P(-210, latchY + 34, latchZ), 'latch', { ex: [-120, 110, -40] });
+add(fixed, cylZ(2.5, 56, 10), MAT.brass, P(-44, latchY - 40, latchZ - 6), 'latch', { ex: [-120, 110, -40] });        // safety pin
+add(fixed, new THREE.TorusGeometry(7, 1.2, 6, 20).rotateY(Math.PI / 2), MAT.brass, P(-44, latchY - 40, latchZ - 40), 'latch', { ex: [-120, 110, -40] });
+const pawl = new THREE.Group(); pawl.position.set(-27, latchY, latchZ); fixed.add(pawl);
+{ const hook = extrudeYZ([[-8, 7], [7, 7], [24, -4], [29, -16], [24, -20], [15, -10], [-8, -7]], 10);
+  add(pawl, hook, MAT.tool, P(0, 0, 0), 'latch', { ex: [0, 0, 0] });
+  add(pawl, cylX(8, 12, 20), MAT.machined, P(0, 0, 0), 'latch', { ex: [0, 0, 0] });
+  add(pawl, new THREE.TorusKnotGeometry(4, .9, 48, 6, 1, 6).rotateY(Math.PI / 2), MAT.machined, P(-3, 14, -8), 'latch', { ex: [0, 0, 0] }); }
+
+/* ---------- the pendulum (rotates about X at the pivot) ---------- */
+const pend = new THREE.Group(); pend.position.set(0, G.pivotY, 0); machine.add(pend);
+const pendParts = new THREE.Group(); pend.add(pendParts);
+add(pendParts, cylX(10, 292, 32), MAT.ground, P(-6, 0, 0), 'pend', { ex: [260, 0, 0], step: 4 });                      // shaft (rotates with the hub)
+add(pendParts, cylX(30, 36, 48), MAT.machined, P(0, 0, 0), 'pend', { ex: [0, 120, 0] });                      // split clamp hub
+add(pendParts, cylY(16, 274, 32), MAT.machined, P(0, -165, 0), 'pend', { ex: [0, 40, 0] });                   // arm tube
+add(pendParts, cylY(22, 26, 32), MAT.machined, P(0, -291, 0), 'pend', { ex: [0, -40, 0] });                   // socket boss
+const hammer = add(pendParts, extrudeYZ(hammerOutline(), G.hamT, 1.2, 48), MAT.machined, P(0, 0, 0), 'pend', { ex: [0, -110, 0] });
+for (const [t, s] of [[-332, -58], [-440, -40], [-446, 34]]) add(pendParts, cylX(5, G.hamT + 1, 16), MAT.brass, P(0, t, s), 'pend', { ex: [0, -110, 0] });
+const sp = strikerProfile();
+const striker = add(pendParts, extrudeXZ(sp.pts, G.mouthH), MAT.tool, P(0, -G.L - G.mouthH / 2, 0), 'striker', { ex: [0, -110, 110] });
+// latch catch plate with tooth (on −x side of the hub)
+add(pendParts, cylX(52, 8, 64), MAT.dark, P(-27, 0, 0), 'latch', { ex: [-120, 110, 0] });
+{ const t = add(pendParts, box(10, 16, 14), MAT.tool, P(-27, 0, 0), 'latch', { ex: [-120, 110, 0] });
+  const q = new THREE.Quaternion().setFromAxisAngle(new V3(1, 0, 0), 150 * DEG).invert();   // the direction that is world-up when latched
+  t.position.addScaledVector(new V3(0, 1, 0).applyQuaternion(q), 57); t.quaternion.copy(q); t.userData.base = t.position.clone(); }
+// brake drum (on the shaft), pointer dog, encoder magnet
+add(pendParts, cylX(55, 25, 64), MAT.castiron, P(-128, 0, 0), 'brake', { ex: [-160, 0, 0] });
+add(pendParts, cylX(12, 27, 24), MAT.machined, P(-128, 0, 0), 'brake', { ex: [-160, 0, 0] });
+add(pendParts, cylX(16, 10, 24), MAT.machined, P(134, 0, 0), 'dial', { ex: [210, 0, 0] });                    // pointer dog collar
+add(pendParts, box(12, 6, 6), MAT.machined, P(128, 0, 14), 'dial', { ex: [210, 0, 0] });
+add(pendParts, cylX(3, 2.5, 20), MAT.chip, P(-153.5, 0, 0), 'enc', { ex: [-200, 0, 0] });                       // diametric magnet
+// drag pointer (fixed bearing, pushed up by the dog, rests at the highest point reached)
+const pointer = new THREE.Group(); pointer.position.set(124, G.pivotY, 0); fixed.add(pointer);
+add(pointer, box(1.6, 80, 3), MAT.brass, P(0, -40, 0), 'dial', { ex: [0, 0, 0] });
+add(pointer, box(1.6, 20, 6), MAT.brass, P(0, 10, 0), 'dial', { ex: [0, 0, 0] });
+add(pointer, cylX(6, 3, 20), MAT.brass, P(0, 0, 0), 'dial', { ex: [0, 0, 0] });
+add(pointer, box(4, 6, 6), MAT.machined, P(3, -4, -12), 'dial', { ex: [0, 0, 0] });
+
+
+/* ---------- build-level detail: every fastener, weld, shim, pin and bushing ---------- */
+const FMAT = { oxide: std(0x1e2024, .38, .85), zinc: std(0xb4bac1, .34, .85), weld: std(0x4a4f57, .82, .45), bronze: std(0xb07a45, .32, .85),
+  ptfe: std(0xe9ece9, .6, 0), shim: std(0xc7a66a, .25, .9), white: std(0xe6e6e0, .5, .05), lining: std(0x6a4b33, .9, 0), cap: std(0x2d3a4f, .4, .1) };
+[['oxide','bolt'],['zinc','steel_zn'],['weld','weld'],['bronze','bronze'],['ptfe','foam'],['shim','brass'],['white','petg'],['lining','belt'],['cap','petg']]
+  .forEach(([k, f]) => MATKEY.set(FMAT[k], f));
+const ORIENT = { 'y+': g => g, 'y-': g => g.rotateX(Math.PI), 'x+': g => g.rotateZ(-Math.PI / 2), 'x-': g => g.rotateZ(Math.PI / 2), 'z+': g => g.rotateX(Math.PI / 2), 'z-': g => g.rotateX(-Math.PI / 2) };
+const DV = { 'y+': [0, 1, 0], 'y-': [0, -1, 0], 'x+': [1, 0, 0], 'x-': [-1, 0, 0], 'z+': [0, 0, 1], 'z-': [0, 0, -1] };
+const FASTENERS = [];       // every fastener, for the build steps and the count in the BOM
+// socket head cap screw seated on a face at p, head pointing `dir`; optional washer
+function shcs(parent, a, p, dir, d, opt = {}) {
+  const n = new V3(...DV[dir]), at = p.clone(); let made = [];
+  if (opt.washer) { const w = add(parent, ORIENT[dir](cylY(d * 1.05, d * .2, 24)), FMAT.zinc, at.clone().addScaledVector(n, d * .1), a, opt); made.push(w); at.addScaledVector(n, d * .2); }
+  const h = add(parent, ORIENT[dir](cylY(d * .75, d, 24)), FMAT.oxide, at.clone().addScaledVector(n, d / 2), a, opt); made.push(h);
+  const s = add(parent, ORIENT[dir](cylY(d * .36, d * .12, 6)), MAT.black, at.clone().addScaledVector(n, d + .02), a, Object.assign({ shadow: false }, opt)); made.push(s);
+  FASTENERS.push({ a, d, kind: 'SHCS', step: opt.step }); return made;
+}
+function flathead(parent, a, p, dir, d, opt = {}) {
+  const n = new V3(...DV[dir]); add(parent, ORIENT[dir](cylY(d * .9, .5, 20)), FMAT.oxide, p.clone().addScaledVector(n, .26), a, opt);
+  add(parent, ORIENT[dir](cylY(d * .33, .2, 6)), MAT.black, p.clone().addScaledVector(n, .55), a, Object.assign({ shadow: false }, opt)); FASTENERS.push({ a, d, kind: 'CSK', step: opt.step });
+}
+function nut(parent, a, p, dir, d, opt = {}) { add(parent, ORIENT[dir](cylY(d * .92, d * .8, 6)), FMAT.zinc, p.clone().addScaledVector(new V3(...DV[dir]), d * .4), a, opt); FASTENERS.push({ a, d, kind: 'NUT', step: opt.step }); }
+// fillet weld bead along a straight joint
+function weld(parent, a, p0, p1, opt = {}) {
+  const v = new V3().subVectors(p1, p0), L = v.length(), g = new THREE.CylinderGeometry(2.3, 2.3, L, 6), m = add(parent, g, FMAT.weld, p0.clone().add(p1).multiplyScalar(.5), a, opt);
+  m.quaternion.setFromUnitVectors(new V3(0, 1, 0), v.normalize()); return m;
+}
+
+// 01 base: bench anchor bolts with washers
+for (const sx of [-1, 1]) for (const sz of [-1, 1]) shcs(fixed, 'base', P(sx * 150, 0, sz * 405), 'y+', 12, { washer: true, ex: [0, -170, 0], step: 1 });
+
+// 02 columns: flange bolts, welds, top plate welds
+for (const sx of [-1, 1]) {
+  const X = sx * G.colX, ex = [sx * 190, 0, 0];
+  for (const sz of [-1, 1]) for (const ox of [-42, 42]) shcs(fixed, 'frame', P(X + ox, 10, sz * 42), 'y+', 10, { washer: true, ex, step: 2 });
+  for (const s of [-1, 1]) { weld(fixed, 'frame', P(X + s * 31, 11.5, -30), P(X + s * 31, 11.5, 30), { ex }); weld(fixed, 'frame', P(X - 30, 11.5, s * 31), P(X + 30, 11.5, s * 31), { ex }); }
+  for (const s of [-1, 1]) { weld(fixed, 'frame', P(X + s * 31, 457.5, -30), P(X + s * 31, 457.5, 30), { ex }); weld(fixed, 'frame', P(X - 30, 457.5, s * 31), P(X + 30, 457.5, s * 31), { ex }); }
+  for (const sz of [-1, 1]) for (const s of [-1, 1]) { weld(fixed, 'frame', P(X + s * 5.5, 12, sz * 31.5), P(X + s * 5.5, 78, sz * 31.5), { ex }); weld(fixed, 'frame', P(X + s * 5.5, 11.5, sz * 32), P(X + s * 5.5, 11.5, sz * 82), { ex }); }
+}
+
+// 03 pillow blocks: bolts + washers, shim tabs, insert set screws; shaft collars (rotate with the shaft)
+for (const sx of [-1, 1]) {
+  const X = sx * G.colX, ex = [sx * 60, 150, 0];
+  for (const sz of [-1, 1]) shcs(fixed, 'bear', P(X, 483, sz * 48), 'y+', 10, { washer: true, ex, step: 4 });
+  for (const sz of [-1, 1]) add(fixed, box(30, 1.2, 14), FMAT.shim, P(X, 469.6, sz * 66), 'bear', { ex, step: 4 });
+  for (const a of [0, 1]) add(fixed, cylX(2.2, 4, 8), FMAT.oxide, P(X + sx * 21, G.pivotY + 17.5 * Math.cos(a * 1.2 + .6), 17.5 * Math.sin(a * 1.2 + .6)), 'bear', { ex, step: 4 });
+  add(pendParts, cylX(17, 12, 32), FMAT.oxide, P(sx * 99, 0, 0), 'bear', { ex: [sx * 80, 0, 0], step: 4 });
+  add(pendParts, cylZ(2.6, 8, 8), MAT.black, P(sx * 99, 0, 16.5), 'bear', { ex: [sx * 80, 0, 0], step: 4 });
+}
+
+// 04 pendulum: clamp lug + 2 x M8, cross pins, striker retaining screws from the back rim
+add(pendParts, box(36, 16, 30), MAT.machined, P(0, 34, 0), 'pend', { ex: [0, 120, 0], step: 5 });
+add(pendParts, box(37, 17, 1.6), MAT.black, P(0, 34, 0), 'pend', { ex: [0, 120, 0], step: 5, shadow: false });
+for (const sx of [-1, 1]) shcs(pendParts, 'pend', P(sx * 10, 36, 15), 'z+', 8, { ex: [0, 120, 0], step: 5 });
+add(pendParts, cylX(3, 64, 12), FMAT.zinc, P(0, -18, 0), 'pend', { ex: [0, 120, 0], step: 5 });
+add(pendParts, cylX(3, 46, 12), FMAT.zinc, P(0, -291, 0), 'pend', { ex: [0, -40, 0], step: 5 });
+for (const dy of [-9, 9]) shcs(pendParts, 'striker', P(0, -G.L + dy, -96.6), 'z-', 6, { ex: [0, -110, -60], step: 5 });
+// catch plate screws (−x face of the plate)
+for (let i = 0; i < 3; i++) { const a = i * 2 * Math.PI / 3 + .4; shcs(pendParts, 'latch', P(-31, 38 * Math.cos(a), 38 * Math.sin(a)), 'x-', 6, { ex: [-120, 110, 0], step: 6 }); }
+
+// 06 seat: bed bolts and dowels, anvil screws from the back, countersunk support screws
+for (const sx of [-1, 1]) {
+  const ex = v => [sx * v[0], v[1], v[2]];
+  shcs(fixed, 'anvil', P(sx * 28, 90, 48), 'y+', 8, { washer: true, ex: ex([60, 0, 0]), step: 3 });
+  add(fixed, cylY(2.5, 3, 12), FMAT.zinc, P(sx * 28, 91, -16), 'anvil', { ex: ex([60, 0, 0]), step: 3 });
+  for (const y of [100, 116]) shcs(fixed, 'anvil', P(sx * 32, y, 34), 'z+', 6, { ex: ex([30, 90, 40]), step: 3 });
+  flathead(fixed, 'anvil', P(sx * 35, 110, -6), 'y+', 5, { ex: ex([30, 60, -40]), step: 3 });
+}
+
+// 07 latch: bracket screws, riser welds, bronze bushings, e-clip, safety-pin lanyard
+for (const y of [latchY - 8, latchY - 44]) shcs(fixed, 'latch', P(-52, y, latchZ - 20), 'x-', 6, { ex: [-120, 110, -40], step: 6 });
+for (const s of [-1, 1]) weld(fixed, 'latch', P(-44 + s * 9.5, 470.5, -65), P(-44 + s * 9.5, 470.5, -35), { ex: [-120, 110, -40] });
+add(fixed, cylX(7.5, 18, 20), FMAT.bronze, P(-44, latchY, latchZ), 'latch', { ex: [-120, 110, -40], step: 6 });
+add(fixed, box(10, 40, 40), MAT.extr, P(-170, latchY, latchZ), 'latch', { ex: [-120, 110, -40], step: 6 });
+add(fixed, cylX(8, 12, 20), FMAT.bronze, P(-170, latchY, latchZ), 'latch', { ex: [-120, 110, -40], step: 6 });
+add(fixed, new THREE.TorusGeometry(6, .9, 6, 20, Math.PI * 1.7).rotateY(Math.PI / 2), FMAT.zinc, P(-35, latchY, latchZ), 'latch', { ex: [-120, 110, -40], step: 6 });
+{ const c = new THREE.CatmullRomCurve3([P(-44, latchY - 40, latchZ - 47), P(-48, latchY - 70, latchZ - 50), P(-50, latchY - 60, latchZ - 25), P(-52, latchY - 30, latchZ - 20)]);
+  add(fixed, new THREE.TubeGeometry(c, 30, .8, 6), FMAT.zinc, null, 'latch', { ex: [-120, 110, -40], step: 6, shadow: false }); }
+
+// 08 brake: lining inside the band, anchor pin, lever bracket + pivot pin, link rod, return spring
+add(fixed, new THREE.TorusGeometry(56.1, 1.2, 6, 64, Math.PI * 1.7).rotateY(Math.PI / 2).rotateX(-Math.PI * .35), FMAT.lining, P(-128, G.pivotY, 0), 'brake', { ex: [-160, 0, 0], step: 6 });
+add(fixed, cylX(4, 26, 12), FMAT.zinc, P(-128, G.pivotY - 70, -40), 'brake', { ex: [-160, 0, 0], step: 6 });
+add(fixed, box(26, 22, 22), MAT.paint, P(-115, 430, -58), 'brake', { ex: [-160, 0, 0], step: 6 });
+add(fixed, cylX(4, 34, 12), FMAT.zinc, P(-120, 430, -58), 'brake', { ex: [-160, 0, 0], step: 6 });
+for (const y of [424, 436]) shcs(fixed, 'brake', P(-104, y, -58), 'x-', 5, { ex: [-160, 0, 0], step: 6 });
+add(fixed, cylY(2, 24, 8), FMAT.zinc, P(-128, 449, -52), 'brake', { ex: [-160, 0, 0], step: 6 });
+add(fixed, new THREE.TorusKnotGeometry(4, .8, 48, 6, 1, 7).rotateZ(Math.PI / 2), FMAT.zinc, P(-128, 398, -44), 'brake', { ex: [-160, 0, 0], step: 6 });
+
+// 09 dial: bezel screws, bracket screws, PTFE friction washer, acorn nut on the shaft end
+for (let i = 0; i < 4; i++) { const a = i * Math.PI / 2 + Math.PI / 4; shcs(fixed, 'dial', P(121.5, G.pivotY + 80 * Math.cos(a), 80 * Math.sin(a)), 'x+', 3, { ex: [210, 0, 0], step: 7 }); }
+for (const z of [-12, 12]) shcs(fixed, 'dial', P(118, 440, z), 'x+', 6, { ex: [210, 0, 0], step: 7 });
+for (const z of [-12, 12]) shcs(fixed, 'dial', P(115, 495, z), 'x+', 5, { ex: [210, 0, 0], step: 7 });
+add(pointer, cylX(9, .8, 24), FMAT.ptfe, P(-1.9, 0, 0), 'dial', { ex: [0, 0, 0], step: 7 });
+add(pendParts, cylX(7.5, 6, 6), FMAT.zinc, P(143, 0, 0), 'dial', { ex: [210, 0, 0], step: 7 });
+add(pendParts, new THREE.SphereGeometry(6.5, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2).rotateZ(-Math.PI / 2), FMAT.zinc, P(146, 0, 0), 'dial', { ex: [210, 0, 0], step: 7 });
+
+// 10 encoder: JST connector, passives, bracket screws; 11 controller: lid screws, gland, USB, buttons
+add(fixed, box(4, 6, 9), FMAT.white, P(-158, G.pivotY - 14, 12), 'enc', { step: 7 });
+for (let i = 0; i < 4; i++) add(fixed, box(1.5, 2, 3), i % 2 ? MAT.black : FMAT.white, P(-158.6, G.pivotY + 8 + i * 3, -10), 'enc', { step: 7, shadow: false });
+for (const z of [-15, 15]) shcs(fixed, 'enc', P(-112, 447.5, z), 'y+', 5, { step: 7 });
+for (const y of [6, 64]) for (const z of [-455, -345]) shcs(fixed, 'ctrl', P(140, y, z), 'x+', 3, { step: 7 });
+add(fixed, cylY(6, 9, 6), MAT.black, P(120, 74, -350), 'ctrl', { step: 7 });
+add(fixed, box(2, 4, 10), MAT.machined, P(141, 60, -440), 'ctrl', { step: 7 });
+
+// 13 guard: corner cubes, door (hinged, with rails), hinges, handle, interlock tongue; tray rivets
+// guard dimensions gx, gz, gh are defined with the guard above
+for (const sx of [-1, 1]) for (const sz of [-1, 0, 1]) for (const y of [10, gh - 10]) add(fixed, box(26, 26, 26), MAT.black, P(sx * gx, y, sz * gz), 'guard', { ex: [sx * 260, 0, sz * 200], step: 8 });
+for (const y of [20, 540]) add(fixed, box(8, 8, 410), MAT.extr, P(gx + 3, y, 195), 'guard', { ex: [260, 0, 0], step: 8 });
+for (const y of [80, 480]) { add(fixed, box(8, 40, 14), MAT.black, P(gx + 6, y, -14), 'guard', { ex: [260, 0, 0], step: 8 }); add(fixed, cylY(2.5, 42, 10), MAT.machined, P(gx + 10, y, -14), 'guard', { ex: [260, 0, 0], step: 8 }); }
+add(fixed, box(14, 8, 18), MAT.machined, P(gx + 9, 300, 280), 'guard', { ex: [260, 0, 0], step: 8 });
+for (let i = 0; i < 6; i++) add(fixed, cylY(1.6, 1.6, 8), MAT.machined, P(-150 + 60 * i, 20.5, 430), 'tray', { step: 8, shadow: false });
+
+
+/* ---------- specimen: two halves that hinge on the anvil edges ---------- */
+function halfGeometry(sx) {          // sx = −1 left, +1 right; the notch root sits at z = 8 on x = 0
+  const L = G.specLen / 2, a = G.notch * Math.tan(22.5 * DEG);
+  let pts = [[-L, 0], [0, 0], [0, 10 - G.notch], [-a, 10], [-L, 10]];
+  if (sx > 0) pts = pts.map(([x, z]) => [-x, z]).reverse();
+  return extrudeXZ(pts, G.specB).translate(-sx * L / 2, -G.specB / 2, -5);   // centred on the half's own centroid
+}
+const fracTexCache = new Map();
+function fractureTexture(mat, shear, flip) {
+  const k = mat + ':' + Math.round(shear * 20) + ':' + (flip ? 1 : 0);
+  if (fracTexCache.has(k)) return fracTexCache.get(k);
+  const W = 256, H = 160, c = document.createElement('canvas'); c.width = W; c.height = H; const x = c.getContext('2d');
+  let seed = 7 + Math.round(shear * 50) + mat.length * 13; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const notchU = flip ? W : 0;                     // the notch side of the ligament
+  if (mat === 'iron') {
+    x.fillStyle = '#45494f'; x.fillRect(0, 0, W, H);
+    for (let i = 0; i < 2600; i++) { const v = 50 + rnd() * 70 | 0; x.fillStyle = `rgb(${v},${v + 2},${v + 5})`; x.fillRect(rnd() * W, rnd() * H, 2 + rnd() * 3, 2 + rnd() * 3); }
+    x.strokeStyle = 'rgba(12,13,15,.9)'; x.lineWidth = 1.4;
+    for (let i = 0; i < 120; i++) { const px = rnd() * W, py = rnd() * H, a = rnd() * 6.28, l = 6 + rnd() * 16; x.beginPath(); x.moveTo(px, py); x.quadraticCurveTo(px + Math.cos(a + .7) * l * .6, py + Math.sin(a + .7) * l * .6, px + Math.cos(a) * l, py + Math.sin(a) * l); x.stroke(); }
+    for (let i = 0; i < 260; i++) { x.fillStyle = 'rgba(220,226,235,.55)'; x.fillRect(rnd() * W, rnd() * H, 1.2, 1.2); }
+  } else if (mat === 'alu') {
+    x.fillStyle = '#9ea4ab'; x.fillRect(0, 0, W, H);
+    for (let i = 0; i < 6000; i++) { const v = 130 + rnd() * 60 | 0; x.fillStyle = `rgba(${v},${v + 3},${v + 7},.55)`; const r = .8 + rnd() * 1.8; x.beginPath(); x.arc(rnd() * W, rnd() * H, r, 0, 6.28); x.fill(); }
+    for (let i = 0; i < 2200; i++) { x.fillStyle = 'rgba(40,44,50,.35)'; x.beginPath(); x.arc(rnd() * W, rnd() * H, .7 + rnd(), 0, 6.28); x.fill(); }
+  } else {
+    // steel: fibrous shear lips on the free edges and the striker side, bright cleavage facets in the middle
+    x.fillStyle = '#6f757c'; x.fillRect(0, 0, W, H);
+    for (let i = 0; i < 5200; i++) { const v = 85 + rnd() * 50 | 0; x.fillStyle = `rgba(${v},${v + 2},${v + 6},.6)`; x.fillRect(rnd() * W, rnd() * H, 1 + rnd() * 2.5, 1 + rnd() * 2.5); }
+    const brittle = 1 - shear;
+    if (brittle > .02) {
+      const cw = W * Math.sqrt(brittle) * .92, ch = H * Math.sqrt(brittle) * .8, cx = flip ? W - cw / 2 - W * .04 : cw / 2 + W * .04;
+      x.save(); x.beginPath(); x.ellipse(cx, H / 2, cw / 2, ch / 2, 0, 0, 6.28); x.clip();
+      x.fillStyle = '#8d949c'; x.fillRect(0, 0, W, H);
+      for (let i = 0; i < 900; i++) { const v = 120 + rnd() * 120 | 0; x.fillStyle = `rgb(${v},${v + 4},${v + 10})`; const px = rnd() * W, py = rnd() * H, s = 3 + rnd() * 7;
+        x.beginPath(); x.moveTo(px, py); x.lineTo(px + s, py + rnd() * s * .6); x.lineTo(px + rnd() * s * .5, py + s); x.closePath(); x.fill(); }
+      x.restore();
+    }
+    // radial chevrons pointing back to the notch when the break is mixed
+    if (brittle > .15 && brittle < .95) { x.strokeStyle = 'rgba(30,33,38,.35)'; x.lineWidth = 1;
+      for (let i = 0; i < 14; i++) { const yy = H * (i + .5) / 14; x.beginPath(); x.moveTo(notchU, H / 2); x.lineTo(W / 2 + (flip ? -1 : 1) * W * .1, yy); x.stroke(); } }
+    x.strokeStyle = 'rgba(160,166,174,.25)'; x.lineWidth = 7 * shear + 1; x.strokeRect(0, 0, W, H);
+  }
+  const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = 4;
+  fracTexCache.set(k, t); return t;
+}
+function specimenMaterial(mat, T) {
+  const base = new THREE.Color(MATS[mat].bar), frost = new THREE.Color(0xe2ecf5);
+  if (T < -2) base.lerp(frost, clamp((-T) / 60, 0, .5));
+  return std(base, mat === 'iron' ? .7 : .36, mat === 'iron' ? .55 : .9);
+}
+/* ---------- plastic deformation of a broken half ----------
+   Local frame of a half: x along the bar, y across the 5 mm thickness, z across the 10 mm width (striker face z = −5, notch side z = +5).
+   u is the distance from the fracture plane into the half; zz = z + 5 runs 0 (struck face) to 10 (notch side).
+   Everything is a function of position only, so the faces of the box stay joined at their edges. */
+const HL = G.specLen / 2;                                  // 27.5 mm half length
+const hsh = (a, b) => { const v = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return v - Math.floor(v); };
+const vnoise = (a, b) => { const i = Math.floor(a), j = Math.floor(b), f = a - i, g = b - j, sf = f * f * (3 - 2 * f), sg = g * g * (3 - 2 * g);
+  return lerp(lerp(hsh(i, j), hsh(i + 1, j), sf), lerp(hsh(i, j + 1), hsh(i + 1, j + 1), sf), sg) * 2 - 1; };
+function deformParams(mat, E) {
+  const sh = MATS[mat].shear(E), e = clamp(E / 40, 0, 1);
+  return {
+    mat, sh, E,
+    bend: .72 * Math.pow(e, .8) * (.1 + .9 * sh),          // permanent bend at the plastic hinge, rad (≈ 35° for upper-shelf steel)
+    hinge: 8 + 6 * sh,                                     // length of the bent zone, mm
+    le: MATS[mat].le(E),                                   // lateral expansion of the struck side, mm (total, both faces)
+    neck: .55 * MATS[mat].le(E),                           // lateral contraction at the notch root, mm
+    dent: Math.min(.9, .024 * E) * (.25 + .75 * sh),       // striker indentation, mm
+    lip: mat === 'iron' ? 0 : (.25 + 1.0 * sh),            // shear lip width, mm
+    rough: mat === 'iron' ? .16 : .12 + .3 * sh,           // fracture surface relief, mm
+    facet: mat === 'iron' ? .5 : 1.1 - .6 * sh,            // feature size, mm
+  };
+}
+function halfGeo(sx, D) {
+  const g = new THREE.BoxGeometry(HL, G.specB, G.specW, 46, 12, 24), pos = g.attributes.position;
+  const p0 = Float32Array.from(pos.array);
+  for (let k = 0; k < pos.count; k++) {             // concentrate the length divisions near the fracture
+    const x = p0[k * 3], u = HL / 2 + sx * x, un = HL * Math.pow(u / HL, 1.9); p0[k * 3] = sx * (un - HL / 2);
+  }
+  g.userData = { p0, sx, D };
+  // fracture-face UVs from the ligament (zz 0..8)
+  const fg = g.groups[sx < 0 ? 0 : 1], uv = g.attributes.uv;
+  for (let k = fg.start; k < fg.start + fg.count; k++) { const vi = g.index.array[k]; uv.setXY(vi, (p0[vi * 3 + 1] + 2.5) / 5, clamp((p0[vi * 3 + 2] + 5) / 8, 0, 1)); }
+  applyDeform(g, 0);
+  return g;
+}
+function applyDeform(g, t) {
+  const { p0, sx, D } = g.userData, pos = g.attributes.position, a = pos.array, tan = Math.tan(22.5 * DEG);
+  const bend = D.bend * t, R = bend > 1e-4 ? D.hinge / bend : 0;
+  for (let k = 0; k < pos.count; k++) {
+    let u = HL / 2 + sx * p0[k * 3], y = p0[k * 3 + 1], zz = p0[k * 3 + 2] + 5;
+    // V-notch: rows above the notch root start on the notch flank
+    if (zz > 8) { const nU = (zz - 8) * tan; u = nU + u * (HL - nU) / HL; }
+    // fracture surface: relief, shear lips slanted at 45°, mating between the two halves
+    const wf = Math.max(0, 1 - u / .9);
+    if (wf > 0 && zz <= 8.01) {
+      let d = 0;
+      if (D.mat === 'iron') d = D.rough * (vnoise(y / D.facet, zz / D.facet) + .5 * hsh(Math.floor(y / .35), Math.floor(zz / .35)));
+      else {
+        const cleave = D.rough * (1 - D.sh) * (hsh(Math.floor(y / D.facet + 7), Math.floor(zz / D.facet)) - .5) * 2;      // flat facets, stepped
+        const fibre = D.rough * D.sh * (vnoise(y / .45, zz / .45) * .7 + vnoise(y / 1.6, zz / 1.6) * .6);                   // dimpled, wavy
+        d = cleave + fibre + D.sh * .35 * Math.sin((zz / 8) * Math.PI) * 1.2;                                               // ductile tunnelling in the middle
+        const edge = Math.min(2.5 - Math.abs(y), zz);                                                                     // distance to a free surface
+        if (edge < D.lip) d += (D.lip - edge);                                                                             // 45° shear lip
+      }
+      u += (sx < 0 ? -d : d) * wf;                  // one half stands proud where the other is recessed
+    }
+    // lateral expansion on the struck side, contraction at the notch root, fading along the bar
+    const wl = Math.exp(-Math.max(0, u) / 2.6) * t;
+    const grow = (D.le / G.specB) * Math.max(0, 1 - zz / 6) - (D.neck / G.specB) * Math.max(0, (zz - 4) / 4);
+    y *= 1 + grow * wl;
+    // striker dent on the struck face
+    let z = zz - 5 + D.dent * t * Math.exp(-(u * u) / 3.2) * Math.max(0, 1 - zz / 5);
+    // plastic hinge: the broken end turns back toward the striker side by `bend`
+    if (R > 0 && u < D.hinge) {
+      const sArc = D.hinge - u, psi = sArc / R, rr = R + z;
+      u = D.hinge - rr * Math.sin(psi); z = -R + rr * Math.cos(psi);
+    }
+    a[k * 3] = sx * (u - HL / 2); a[k * 3 + 1] = y; a[k * 3 + 2] = z;
+  }
+  pos.needsUpdate = true; g.computeVertexNormals(); g.computeBoundingSphere(); g.userData.t = t;
+}
+function halfMaterials(sx, mat, T, D, flip) {
+  const side = specimenMaterial(mat, T);
+  const face = std(0xffffff, mat === 'iron' ? .62 : .55 + .3 * D.sh, mat === 'iron' ? .45 : .75, { map: fractureTexture(mat, D.sh, flip) });
+  const m = [side, side, side, side, side, side]; m[sx < 0 ? 0 : 1] = face; return m;
+}
+function makeHalf(sx, mat, T, shear) {
+  const D = deformParams(mat, MATS[mat].E(T));
+  const holder = new THREE.Group(); holder.position.set(sx * 20, G.specY, 10);
+  const mesh = new THREE.Mesh(halfGeo(sx, D), halfMaterials(sx, mat, T, D, sx > 0)); mesh.castShadow = true;
+  mesh.position.set(-sx * 20 + sx * G.specLen / 4, G.specB / 2, -5);
+  holder.add(mesh); machine.add(holder);
+  return { sx, holder, mesh, ff: { visible: false }, D, state: 'seat', v: new V3(), w: new V3(), phi: 0 };
+}
+
+
+/* ---------- dial face and OLED ---------- */
+function makeDialTexture() {
+  const S = 1024, c = document.createElement('canvas'); c.width = c.height = S; const x = c.getContext('2d'), C = S / 2, R = S * .46;
+  x.fillStyle = '#e9ecef'; x.beginPath(); x.arc(C, C, S / 2, 0, 6.28); x.fill();
+  x.strokeStyle = '#1a1d22'; x.fillStyle = '#1a1d22'; x.textAlign = 'center'; x.textBaseline = 'middle';
+  // the hammer rises toward +z; on the dial plane +z maps to canvas −x
+  const at = (beta, r) => [C - Math.sin(beta) * r, C + Math.cos(beta) * r];
+  for (let E = 0; E <= 50; E += .5) {
+    const b = betaFor(E), major = E % 5 === 0, mid = E % 1 === 0;
+    const [x0, y0] = at(b, R), [x1, y1] = at(b, R - (major ? 46 : mid ? 28 : 16));
+    x.lineWidth = major ? 5 : mid ? 2.4 : 1.2; x.beginPath(); x.moveTo(x0, y0); x.lineTo(x1, y1); x.stroke();
+    if (major) { const [tx, ty] = at(b, R - 86); x.font = '600 44px Archivo, Arial'; x.fillText(String(E), tx, ty); }
+  }
+  x.lineWidth = 3; x.beginPath(); for (let E = 0; E <= 50; E += .25) { const [px, py] = at(betaFor(E), R); E ? x.lineTo(px, py) : x.moveTo(px, py); } x.stroke();
+  x.font = '600 40px Archivo, Arial'; x.fillText('J', C + 120, C - 150);
+  x.font = '500 24px JetBrains Mono, monospace'; x.fillStyle = '#5b6370';
+  x.fillText('KV · 50 J · ISO 2 mm', C + 40, C - 70); x.fillText('M.B. STILES', C + 40, C - 30);
+  x.fillStyle = '#b3261e'; x.beginPath(); x.arc(C, C, 26, 0, 6.28); x.fill();
+  const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = 8; return t;
+}
+function makeOled() {
+  const c = document.createElement('canvas'); c.width = 256; c.height = 136; const x = c.getContext('2d');
+  const tex = new THREE.CanvasTexture(c); tex.encoding = THREE.sRGBEncoding;
+  const draw = (l1, l2, l3) => { x.fillStyle = '#020405'; x.fillRect(0, 0, 256, 136); x.fillStyle = '#7fe4ff';
+    x.font = '500 20px JetBrains Mono, monospace'; x.fillText(l1, 12, 30); x.font = '600 40px JetBrains Mono, monospace'; x.fillText(l2, 12, 82);
+    x.font = '500 18px JetBrains Mono, monospace'; x.fillStyle = '#4aa3c0'; x.fillText(l3, 12, 120); tex.needsUpdate = true; };
+  draw('READY  50 J', '--.-- J', 'latched'); return { tex, draw };
+}
+
+
+/* ================= simulation ================= */
+const S = {
+  state: 'ready', th: -PH.alpha, w: 0, mat: 'steel', T: 20, slow: true,
+  E: 0, sb: 1, broken: false, contactDone: false, peak: null, pointer: 0, brake: 0, raiseT: 0, raiseFrom: 0, halves: [], chips: null,
+  runs: [], last: null, pawl: 0,
+};
+function loadSpecimen() {
+  for (const h of S.halves) { h.mesh.removeFromParent(); h.holder.removeFromParent(); }
+  const shear = MATS[S.mat].shear(MATS[S.mat].E(S.T));
+  S.halves = [makeHalf(-1, S.mat, S.T, shear), makeHalf(1, S.mat, S.T, shear)];
+  S.broken = false; S.contactDone = false; S.peak = null;
+}
+function release() {
+  if (S.state === 'stopped') { startRaise(true); return; }
+  if (S.state !== 'ready') return;
+  const M = MATS[S.mat]; S.E = M.E(S.T); S.sb = breakTravel(S.E);
+  loadSpecimen();
+  S.state = 'swing'; S.w = 0; S.th = -PH.alpha; S.pointer = 0; S.brake = 0; S.pawl = 1; S.Ec = null;
+  setStatus('Released · ' + M.short + ' at ' + S.T + ' °C'); uiBusy(true);
+  oled.draw('TEST  ' + M.short, '--.-- J', 'swing');
+}
+const DEMO = [['steel', 20], ['alu', 20], ['iron', 20], ['steel', -20]];
+let demoI = 0, demoT = 0;
+function demoTick(dt, inHero) {
+  if (S.state === 'ready' && !S.demo) {
+    demoT = inHero ? demoT + dt : 0;
+    if (demoT > 2.6) { demoT = 0; const [m, T] = DEMO[demoI++ % DEMO.length]; S.demo = { mat: S.mat, T: S.T }; S.mat = m; S.T = T; release(); }
+  } else if (S.demo && S.state === 'stopped') {
+    demoT += dt; if (demoT > 2.2) { demoT = 0; startRaise(false); }
+  }
+}
+function startRaise(thenRelease) {
+  S.state = 'raising'; S.raiseT = 0; S.raiseFrom = S.th; S.autoRelease = !!thenRelease; S.pawl = 0;
+  setStatus('Raising and latching'); uiBusy(true);
+}
+const chipGeo = new THREE.TetrahedronGeometry(.9);
+function spawnChips(n, speed) {
+  const g = new THREE.InstancedMesh(chipGeo, specimenMaterial(S.mat, S.T), n); g.castShadow = true;
+  const st = Array.from({ length: n }, () => ({ p: new V3((Math.random() - .5) * 3, G.specY + Math.random() * 5, 8 + Math.random() * 2),
+    v: new V3((Math.random() - .5) * speed, Math.random() * speed * .6, speed * (.4 + Math.random() * .8)), r: Math.random() * 6, done: false }));
+  machine.add(g); S.chips = { g, st, life: 0 };
+}
+const _m4 = new THREE.Matrix4(), _q = new THREE.Quaternion(), _e = new THREE.Euler();
+function stepChips(dt) {
+  const c = S.chips; if (!c) return; c.life += dt;
+  c.st.forEach((s, i) => { if (!s.done) { s.v.y -= 9810 * dt; s.p.addScaledVector(s.v, dt); s.r += dt * 20;
+      const floor = s.p.z > 140 && s.p.z < 430 && Math.abs(s.p.x) < 150 ? 5 : 0.5;
+      if (s.p.y < floor) { s.p.y = floor; s.v.multiplyScalar(.3); s.v.y = Math.abs(s.v.y) * .3; if (s.v.length() < 60) s.done = true; }
+      if (s.p.z > G.guardZ - 10) { s.p.z = G.guardZ - 10; s.v.z *= -.3; } }
+    _m4.compose(s.p, _q.setFromEuler(_e.set(s.r, s.r * .7, 0)), new V3(1, 1, 1)); c.g.setMatrixAt(i, _m4); });
+  c.g.instanceMatrix.needsUpdate = true;
+}
+const floorAt = (x, z) => (z > 142 && z < 428 && Math.abs(x) < 148) ? 5 : 0;
+function stepHalves(dt, sMM) {
+  for (const h of S.halves) {
+    if (h.state === 'seat') {
+      if (sMM > 0 && !h.done) {
+        h.phi = Math.atan(sMM / 20);
+        h.holder.rotation.y = h.sx * h.phi;
+        const tdef = clamp(sMM / Math.max(.01, S.sb), 0, 1); if (Math.abs((h.mesh.geometry.userData.t || 0) - tdef) > .02) applyDeform(h.mesh.geometry, tdef);
+      }
+      if (S.broken && h.phi > 62 * DEG) {      // slips past the anvil edge: free flight from here
+        const wp = new V3(), wq = new THREE.Quaternion(); h.mesh.getWorldPosition(wp); h.mesh.getWorldQuaternion(wq);
+        machine.attach(h.mesh); h.state = 'fly';
+        const vh = Math.max(.4, S.w * PH.L) * 1000, sm = sMM / 20;
+        h.v.set(h.sx * vh * (.02 + Math.random() * .05), vh * (.06 + Math.random() * .1), vh * (S.mat === 'iron' ? 1.0 : .75));
+        h.w.set((Math.random() - .5) * 5, h.sx * (vh / 20) / (1 + sm * sm) * .6, (Math.random() - .5) * 6);
+      }
+    } else if (h.state === 'fly') {
+      h.v.y -= 9810 * dt;
+      h.mesh.position.addScaledVector(h.v, dt);
+      _q.setFromEuler(_e.set(h.w.x * dt, h.w.y * dt, h.w.z * dt)); h.mesh.quaternion.premultiply(_q);
+      const p = h.mesh.position, fl = floorAt(p.x, p.z) + 3;
+      if (p.z > G.guardZ - 14) { p.z = G.guardZ - 14; h.v.z = -Math.abs(h.v.z) * .35; h.w.multiplyScalar(.6); }
+      if (Math.abs(p.x) > G.guardX - 16) { p.x = Math.sign(p.x) * (G.guardX - 16); h.v.x *= -.35; }
+      if (p.y < fl && h.v.y < 0) { p.y = fl; h.v.y = -h.v.y * .28; h.v.x *= .55; h.v.z *= .55; h.w.multiplyScalar(.45);
+        if (h.v.length() < 140) { h.state = 'settle'; h.settle = 0; h.q0 = h.mesh.quaternion.clone();
+          const yaw = new THREE.Euler().setFromQuaternion(h.mesh.quaternion, 'YXZ').y; h.q1 = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, yaw, 0)); h.y0 = p.y; } }
+    } else if (h.state === 'settle') {
+      h.settle = Math.min(1, h.settle + dt * 3); const e = smooth(0, 1, h.settle);
+      h.mesh.quaternion.slerpQuaternions(h.q0, h.q1, e); h.mesh.position.y = lerp(h.y0, floorAt(h.mesh.position.x, h.mesh.position.z) + G.specB / 2, e);
+      h.mesh.position.addScaledVector(h.v, dt * (1 - e)); if (h.settle >= 1) h.state = 'rest';
+    }
+  }
+}
+function simStep(dt) {
+  if (S.state === 'swing' || S.state === 'brake') {
+    let a = -(PH.mgd / PH.I) * Math.sin(S.th);
+    const sMM = S.th > 0 ? S.th * G.L : 0;
+    const inContact = S.state === 'swing' && !S.contactDone && S.th > 0 && S.w > 0;
+    const Eh = () => PH.mgd * (1 - Math.cos(S.th)) + .5 * PH.I * S.w * S.w;
+    if (inContact) {
+      if (S.Ec == null) S.Ec = Eh();                  // energy as the striker touches the bar
+      const travel = S.sb / 1000, W = S.E + PH.loss;
+      a += -(W / (travel / PH.L)) / PH.I;
+    }
+    if (S.state === 'brake') a += -S.brake * S.w;
+    S.w += a * dt; S.th += S.w * dt;
+    if (inContact && S.th * G.L >= S.sb) {           // fracture: settle the books exactly, whatever the step size
+      S.contactDone = true; S.broken = true; for (const h of S.halves) h.ff.visible = true;
+      const left = S.Ec - S.E - PH.loss - PH.mgd * (1 - Math.cos(S.th)); S.w = Math.sqrt(Math.max(1e-6, 2 * left / PH.I)); S.Ec = null;
+      if (S.mat === 'iron' || MATS[S.mat].shear(S.E) < .3) spawnChips(S.mat === 'iron' ? 26 : 14, 1400);
+    }
+    if (S.state === 'swing') {
+      if (S.contactDone && S.th > 0) S.pointer = Math.max(S.pointer, S.th);
+      if (S.contactDone && S.w <= 0 && S.peak === null) { S.peak = S.th; result(S.th); }
+      if (S.peak !== null && S.th < 0) { S.state = 'brake'; S.brake = 6; }
+    } else if (Math.abs(S.w) < .02 && Math.abs(S.th) < .01) { S.state = 'stopped'; S.th = 0; S.w = 0; setStatus('Braked · result held on the dial'); uiBusy(false); $('#cp-go').textContent = 'Load next and release'; }
+    stepHalves(dt, sMM);
+  } else if (S.state === 'raising') {
+    S.raiseT = Math.min(1, S.raiseT + dt / 2.2);
+    S.th = lerp(S.raiseFrom, -PH.alpha, smooth(0, 1, S.raiseT));
+    S.pointer = lerp(S.pointer, 0, Math.min(1, dt * 4));
+    for (const h of S.halves) for (const m of [...new Set([].concat(h.mesh.material))]) { m.transparent = true; m.opacity = Math.max(0, 1 - S.raiseT * 1.6); }
+    if (S.raiseT >= 1) { S.state = 'ready'; S.pawl = 0; S.pointer = 0; if (S.demo) { S.mat = S.demo.mat; S.T = S.demo.T; S.demo = null; } loadSpecimen(); if (S.chips) { machine.remove(S.chips.g); S.chips = null; }
+      setStatus('Latched · specimen loaded'); uiBusy(false); $('#cp-go').textContent = 'Release hammer'; oled.draw('READY  50 J', '--.-- J', 'latched');
+      if (S.autoRelease) { S.autoRelease = false; setTimeout(release, 350); } }
+  } else stepHalves(dt, 0);
+  stepChips(dt);
+}
+function result(beta) {
+  const M = MATS[S.mat], KV = energyAt(beta), sh = M.shear(KV), le = M.le(KV);
+  if (S.demo) { oled.draw(M.short + '  ' + S.T + 'C', KV.toFixed(2) + ' J', 'beta ' + (beta / DEG).toFixed(1) + ' deg'); return; }
+  const run = { mat: S.mat, T: S.T, KV, beta: beta / DEG, sh, le }; S.runs.push(run); S.last = run;
+  $('#cp-kv').innerHTML = KV.toFixed(2) + '<small>J</small>';
+  $('#cp-b').textContent = (beta / DEG).toFixed(1) + '°';
+  $('#cp-sh').textContent = Math.round(sh * 100) + '%';
+  $('#cp-le').innerHTML = le.toFixed(2) + '<small>mm</small>';
+  let v;
+  if (S.mat === 'steel') v = sh > .7 ? `<b>Ductile, upper shelf.</b> The bar bent a long way before it tore, leaving fibrous shear lips.` :
+    sh > .3 ? `<b>In the transition.</b> A mixed face: a bright cleavage centre inside fibrous lips. A few degrees colder would change the result a lot.` :
+    `<b>Brittle, lower shelf.</b> It cleaved almost without bending. This is the Liberty-ship failure mode.`;
+  else if (S.mat === 'alu') v = `<b>Ductile at any temperature.</b> FCC aluminium has no transition: low energy, but it always tears.`;
+  else v = `<b>Brittle.</b> The graphite flakes act as built-in cracks, so it snaps with almost no energy and no bending.`;
+  $('#cp-verdict').innerHTML = v + ` <span style="color:var(--steel)">${(KV / PH.E0 * 100).toFixed(0)}% of the hammer's energy.</span>`;
+  oled.draw(M.short + '  ' + S.T + 'C', KV.toFixed(2) + ' J', 'beta ' + (beta / DEG).toFixed(1) + ' deg');
+  macroState[S.mat] = { T: S.T, E: KV, D: deformParams(S.mat, KV) }; drawMacros(); drawRuns(); drawDBTT();
+}
+
+
+function drawRuns() {
+  const runs = S.runs.slice(-6), el = $('#cp-runs'); if (!runs.length) { el.innerHTML = ''; return; }
+  const W = 340, rh = 15, H = runs.length * rh + 4;
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" aria-label="Recent results">` + runs.map((r, i) => {
+    const y = i * rh + 2, w = Math.max(2, r.KV / 50 * 200);
+    return `<text x="0" y="${y + 10}" fill="#8d98aa" font-family="JetBrains Mono, monospace" font-size="9">${MATS[r.mat].short} ${r.T}°</text>
+      <rect x="92" y="${y + 2}" width="${w}" height="9" fill="${MATS[r.mat].css}" opacity=".85"/>
+      <text x="${96 + w}" y="${y + 10}" fill="#e4e9f0" font-family="JetBrains Mono, monospace" font-size="9">${r.KV.toFixed(1)} J</text>`; }).join('') + '</svg>';
+}
+function drawDBTT() {
+  const svg = $('#cp-dbtt'), W = 560, H = 330, l = 48, r = 18, t = 18, b = 40;
+  const X = T => l + (T + 60) / 140 * (W - l - r), Y = E => H - b - E / 45 * (H - t - b);
+  let s = '';
+  for (let E = 0; E <= 45; E += 5) s += `<line x1="${l}" x2="${W - r}" y1="${Y(E)}" y2="${Y(E)}" stroke="rgba(196,210,232,.08)"/><text x="${l - 8}" y="${Y(E) + 3}" text-anchor="end" fill="#5a6578" font-size="10" font-family="JetBrains Mono, monospace">${E}</text>`;
+  for (let T = -60; T <= 80; T += 20) s += `<text x="${X(T)}" y="${H - b + 16}" text-anchor="middle" fill="#5a6578" font-size="10" font-family="JetBrains Mono, monospace">${T}</text>`;
+  s += `<line x1="${X(20)}" x2="${X(20)}" y1="${t}" y2="${H - b}" stroke="rgba(228,233,240,.25)" stroke-dasharray="3 4"/><text x="${X(20) + 5}" y="${t + 10}" fill="#8d98aa" font-size="9" font-family="JetBrains Mono, monospace">ROOM</text>`;
+  s += `<rect x="${X(-10)}" y="${t}" width="${X(20) - X(-10)}" height="${H - t - b}" fill="rgba(159,179,200,.06)"/><text x="${X(5)}" y="${H - b - 8}" text-anchor="middle" fill="#9fb3c8" font-size="9" font-family="JetBrains Mono, monospace" opacity=".8">TRANSITION</text>`;
+  for (const [k, M] of Object.entries(MATS)) {
+    let d = ''; for (let T = -60; T <= 80; T += 2) d += (T === -60 ? 'M' : 'L') + X(T).toFixed(1) + ' ' + Y(M.E(T)).toFixed(1);
+    s += `<path d="${d}" fill="none" stroke="${M.css}" stroke-width="2"/>`;
+    s += `<text x="${W - r}" y="${Y(M.E(80)) - 7}" text-anchor="end" fill="${M.css}" font-size="10.5" font-family="Archivo, Arial" font-weight="600">${M.short.toUpperCase()}</text>`;
+  }
+  for (const r0 of S.runs) s += `<circle cx="${X(r0.T)}" cy="${Y(r0.KV)}" r="4.5" fill="${MATS[r0.mat].css}" stroke="#06080c" stroke-width="1.5"/>`;
+  s += `<text x="${l}" y="${H - 6}" fill="#8d98aa" font-size="10" font-family="JetBrains Mono, monospace">TEST TEMPERATURE, °C</text>`;
+  s += `<text x="12" y="${t + 4}" fill="#8d98aa" font-size="10" font-family="JetBrains Mono, monospace" transform="rotate(-90 12 ${t + 4})" text-anchor="end">KV, J</text>`;
+  svg.innerHTML = s;
+}
+
+
+/* ================= build it: step-by-step assembly ================= */
+const TORQUE = { 3: 1.2, 5: 6, 6: 10, 8: 25, 10: 49, 12: 85 };   // N·m, property class 8.8/12.9, lightly oiled
+const BSTEPS = [
+  null,
+  { t: 'Base and feet', tgt: [0, 0, 60], dir: [0.8, 0.6, 0.55], dist: 2400,
+    b: 'Set the 16 mm plate on the bench and screw in the four swivel feet. Level it to 0.1 mm/m in both directions with a precision level, lock the jam nuts, then anchor through the corner holes.',
+    i: [['01', 'Base plate 360 × 1000 × 16'], ['02', 'Levelling foot M12 ×4, jam nut ×4'], ['M12', 'SHCS × 40 + washer ×4 · 85 N·m']], tool: 'Precision level, 19 mm spanner, 10 mm hex key' },
+  { t: 'Columns', tgt: [0, 240, 0], dir: [0.8, 0.38, 0.55], dist: 1500,
+    b: 'Weld each SHS column to its flange and top plate, 6 mm fillet all round, plus two gussets. Let it cool clamped to a flat table, then skim the top plates flat and parallel within 0.05 mm. Bolt each flange down.',
+    i: [['03', 'Column SHS 60 × 60 × 5 ×2'], ['04–06', 'Flange, top plate, gusset ×2'], ['M10', 'SHCS × 30 + washer ×8 · 49 N·m']], tool: 'MIG welder, surface table, 8 mm hex key' },
+  { t: 'Specimen seat', tgt: [0, 95, 20], dir: [0.05, 0.5, -0.86], dist: 820, off: .1,
+    b: 'Dowel the two bed blocks to the base, leaving a 36 mm channel for the hammer jaw, and bolt them down. Screw on the supports, then the anvils from behind. Set the span with a 40.00 mm gauge block and check the anvil faces square with a dial indicator.',
+    i: [['14', 'Bed block ×2, Ø5 dowel ×2'], ['15, 16', 'Support ×2, anvil ×2 (D2, ground)'], ['M8', 'SHCS × 25 ×2 · 25 N·m'], ['M6', 'SHCS × 20 ×4 · 10 N·m'], ['M5', 'CSK × 12 ×2 · 6 N·m']], tool: '40 mm gauge block, dial indicator' },
+  { t: 'Pivot', tgt: [0, 500, 0], dir: [0.75, 0.42, 0.55], dist: 760,
+    b: 'Set the pillow blocks on the top plates over brass shims and snug the bolts. Slide the hardened shaft through and shim until it is level to 0.1 mm/m and square to the anvil faces. Then torque the bolts, lock the insert set screws and fit the two shaft collars.',
+    i: [['07', 'Pillow block UCP204 ×2, shim set'], ['08', 'Shaft Ø20 h6 × 292'], ['M10', 'SHCS × 35 + washer ×4 · 49 N·m'], ['—', 'Shaft collar Ø20 ×2']], tool: 'Level, feeler gauges, 3 mm hex key' },
+  { t: 'Pendulum', tgt: [0, 260, 0], dir: [0.85, 0.28, 0.45], dist: 1150,
+    b: 'Press the arm tube into the hub and the hammer boss and cross-pin both. Bolt the striker into the mouth from the back rim with threadlocker. Slide the hub onto the shaft, set the striker edge on the span centre within 0.5 mm, and clamp.',
+    i: [['09–11', 'Hub, arm tube, C-hammer'], ['12', 'Striker insert, D2 60 HRC'], ['13', 'Trim plug M10 ×3'], ['M8', 'SHCS × 35 ×2 · 25 N·m (clamp)'], ['M6', 'SHCS × 60 ×2 · 10 N·m + Loctite 243'], ['Ø6', 'Roll pin ×2']], tool: 'Arbor press, 6 mm hex key, torque wrench' },
+  { t: 'Latch and brake', tgt: [-90, 520, -20], dir: [-0.85, 0.36, -0.4], dist: 720,
+    b: 'Screw the catch plate to the hub. Mount the pawl bracket on its welded riser with the bronze bushing, pass the cross-shaft out to the guard bushing and fit the red handle and the safety pin. Fit the brake drum to the shaft, wrap the lined band, pin its anchor and connect the lever and return spring.',
+    i: [['17', 'Catch plate with hardened tooth'], ['18–20', 'Pawl, spring, cross-shaft, handle, safety pin'], ['21, 22', 'Brake drum Ø110, band, lever'], ['M6', 'SHCS ×5 · 10 N·m'], ['M5', 'SHCS ×2 · 6 N·m']], tool: '5 mm hex key, circlip pliers' },
+  { t: 'Measurement', tgt: [100, 470, -40], dir: [0.88, 0.25, 0.45], dist: 950,
+    b: 'Bolt the dial bracket to the column and fit the dial. Add the PTFE washer, drag pointer and dog collar, then the acorn nut. Glue the diametric magnet into the shaft end and mount the encoder board 1.5 mm from it. Run the cable to the controller.',
+    i: [['23–25', 'Dial, drag pointer, PTFE washer, dog collar'], ['26', 'AS5048A board + Ø6 magnet'], ['27', 'ESP32 controller + OLED'], ['M3–M6', 'SHCS ×16 · 1.2–10 N·m']], tool: '2.5 / 4 / 5 mm hex keys, epoxy' },
+  { t: 'Guard and tray', tgt: [0, 430, 0], dir: [0.82, 0.32, 0.52], dist: 2700,
+    b: 'Assemble the 20 × 20 extrusion frame with corner cubes and drop in the 4 mm polycarbonate panels. Hang the door on two hinges and fit the coded interlock, so the release only works with the door shut. Rivet up the catch tray and lay in the rubber mat.',
+    i: [['28, 29', 'Extrusion frame, PC panels ×5'], ['30', 'Hinges ×2, handle, interlock switch'], ['31', 'Catch tray, NBR mat, rivets ×6']], tool: 'T-slot hardware, rivet gun' },
+  { t: 'Calibrate', tgt: [0, 430, 0], dir: [0.82, 0.3, 0.52], dist: 2500,
+    b: 'Free-swing with no specimen and record the rise. That gives the friction and windage loss, about 0.10 J, which is subtracted from every result. Weigh the pendulum, find d on knife edges and set the trim plugs for 50.0 J. Then break certified reference bars: ASTM E23 indirect verification passes within ±1.4 J or ±5 %, whichever is greater.',
+    i: [['—', 'Free-swing loss ≈ 0.10 J'], ['—', 'm·g·d·1.866 = 50.0 J'], ['—', 'Reference specimens, low and high energy']], tool: 'Scale, knife edges, reference specimens' },
+];
+S.bstep = 1; S.bfly = 1;
+function setStep(n) {
+  S.bstep = clamp(n, 1, BSTEPS.length - 1); S.bfly = 0;
+  const st = BSTEPS[S.bstep];
+  $('#cp-bn').textContent = `Assembly · step ${S.bstep} of ${BSTEPS.length - 1}`;
+  $('#cp-bt').textContent = st.t; $('#cp-bb').textContent = st.b;
+  $('#cp-bi').innerHTML = st.i.map(([k, v]) => `<li><b>${k}</b><span>${v}</span></li>`).join('');
+  $('#cp-btool').textContent = 'Tools · ' + st.tool;
+  $('#cp-bcnt').textContent = st.i.length;
+  $('#cp-bprev').disabled = S.bstep === 1; $('#cp-bnext').disabled = S.bstep === BSTEPS.length - 1;
+  document.querySelectorAll('#cp-bdots i').forEach((d, i) => d.classList.toggle('on', i + 1 <= S.bstep));
+}
+$('#cp-bdots').innerHTML = BSTEPS.slice(1).map((_, i) => `<i title="Step ${i + 1}"></i>`).join('');
+document.querySelectorAll('#cp-bdots i').forEach((d, i) => d.addEventListener('click', () => setStep(i + 1)));
+$('#cp-bprev').addEventListener('click', () => setStep(S.bstep - 1));
+$('#cp-bnext').addEventListener('click', () => setStep(S.bstep + 1));
+setStep(1);
+if (innerWidth > 900 && innerHeight > 760) $('#cp-bfold').open = true;
+const hiCache = new Map();
+function hiOf(m) { let h = hiCache.get(m.uuid); if (!h) { h = m.clone(); if (h.emissive) { h.emissive = new THREE.Color(0xd3a65c); h.emissiveIntensity = .12; } hiCache.set(m.uuid, h); } return h; }
+function applyBuild(dt) {
+  S.bfly = Math.min(1, S.bfly + dt / .9);
+  const on = view.build > .5, cur = S.bstep, e = smooth(0, 1, S.bfly), def = new V3(0, 90, 0);
+  for (const m of PARTS) {
+    const u = m.userData; if (!on) continue;
+    if (u.step > cur) { m.visible = false; continue; }
+    if (u.asm !== 'guard') m.visible = true;
+    if (u.step === cur) {
+      const ex = u.ex.lengthSq() > 1 ? u.ex : def; m.position.copy(u.base).addScaledVector(ex, 1.4 * (1 - e));
+      if (!blueprint && m.material && m.material.emissive) m.material = hiOf(m.material);
+    }
+  }
+  const showSpec = !on || cur >= BSTEPS.length - 1;
+  for (const h of S.halves) { h.holder.visible = showSpec; if (h.state !== 'seat') h.mesh.visible = showSpec; }
+}
+
+/* ---------- fastener schedule (from the model) ---------- */
+function buildSchedule() {
+  const g = new Map();
+  for (const f of FASTENERS) { const k = f.kind + ' M' + f.d; if (!g.has(k)) g.set(k, { kind: f.kind, d: f.d, n: 0, where: new Set() }); const r = g.get(k); r.n++; r.where.add(ASM[f.a] ? ASM[f.a].label : f.a); }
+  const name = { SHCS: 'Socket head cap screw', CSK: 'Countersunk screw', NUT: 'Hex nut' };
+  const rows = [...g.values()].sort((a, b) => a.d - b.d || a.kind.localeCompare(b.kind));
+  $('#cp-fast').innerHTML = `<thead><tr><th>Size</th><th>Type · where</th><th>Qty</th><th>Torque</th></tr></thead><tbody>` +
+    rows.map(r => `<tr><td>M${r.d}</td><td>${name[r.kind]}<small>${[...r.where].join(', ')}</small></td><td class="n">${r.n}</td><td class="n">${TORQUE[r.d] ?? '—'} N·m</td></tr>`).join('') +
+    `</tbody><tfoot><tr><td></td><td>Total, plus Ø5 dowels ×2, Ø6 roll pins ×2, Ø3 pin, e-clip, rivets ×6</td><td class="n">${FASTENERS.length}</td><td></td></tr></tfoot>`;
+  $('#cp-fcnt').textContent = FASTENERS.length; const f2 = $('#cp-fcnt2'); if (f2) f2.textContent = FASTENERS.length;
+}
+
+
+
+/* ================= technical drawings (SVG, generated from G) ================= */
+const INK = '#d6e8ff', THIN = '#8fb4e0', DIMC = '#ffd27a', HID = '#7fa6d6', CEN = '#9fc0ff';
+function Sheet(no, title, scale, mat) {
+  const out = []; const W = 1200, H = 800;
+  out.push(`<rect x="12" y="12" width="${W - 24}" height="${H - 24}" fill="none" stroke="${INK}" stroke-width="1.6"/>`);
+  out.push(`<rect x="20" y="20" width="${W - 40}" height="${H - 40}" fill="none" stroke="${THIN}" stroke-width=".6"/>`);
+  // zone ticks
+  for (let i = 1; i < 8; i++) out.push(`<line x1="${20 + i * (W - 40) / 8}" y1="12" x2="${20 + i * (W - 40) / 8}" y2="20" stroke="${THIN}"/><line x1="${20 + i * (W - 40) / 8}" y1="${H - 20}" x2="${20 + i * (W - 40) / 8}" y2="${H - 12}" stroke="${THIN}"/>`);
+  // title block
+  const tx = W - 20 - 420, ty = H - 20 - 118;
+  out.push(`<rect x="${tx}" y="${ty}" width="420" height="118" fill="rgba(11,38,70,.9)" stroke="${INK}" stroke-width="1"/>`);
+  const cell = (x, y, w, h, k, v, big) => out.push(`<rect x="${tx + x}" y="${ty + y}" width="${w}" height="${h}" fill="none" stroke="${THIN}" stroke-width=".6"/>
+    <text x="${tx + x + 6}" y="${ty + y + 11}" fill="${THIN}" font-size="7.5" font-family="JetBrains Mono, monospace" letter-spacing=".8">${k}</text>
+    <text x="${tx + x + 6}" y="${ty + y + h - 7}" fill="${INK}" font-size="${big ? 13 : 10}" font-family="${big ? 'Archivo, Arial' : 'JetBrains Mono, monospace'}" font-weight="${big ? 600 : 400}">${v}</text>`);
+  cell(0, 0, 420, 40, 'TITLE', title, true);
+  cell(0, 40, 140, 26, 'DRAWING NO', 'CIT-' + String(no).padStart(3, '0')); cell(140, 40, 140, 26, 'SCALE', scale); cell(280, 40, 140, 26, 'SHEET', `${no} OF 4`);
+  cell(0, 66, 210, 26, 'MATERIAL', mat); cell(210, 66, 210, 26, 'GENERAL TOL.', 'ISO 2768-mK  ·  mm');
+  cell(0, 92, 140, 26, 'DRAWN', 'M.B. STILES'); cell(140, 92, 140, 26, 'DATE', '2026-11'); cell(280, 92, 140, 26, 'PROJECTION', '');
+  // third-angle symbol
+  const px = tx + 360, py = ty + 106;
+  out.push(`<g stroke="${INK}" stroke-width=".9" fill="none"><path d="M${px - 26} ${py - 6}l14 -4v12l-14 -4z"/><circle cx="${px + 4}" cy="${py - 4}" r="6"/><circle cx="${px + 4}" cy="${py - 4}" r="2.5"/><path d="M${px - 30} ${py - 4}h46M${px + 4} ${py - 12}v16" stroke-dasharray="4 2 1 2" stroke-width=".5"/></g>`);
+  return { out, W, H };
+}
+function View(sh, ox, oy, s) {
+  const X = u => ox + u * s, Y = v => oy - v * s, P2 = ([u, v]) => `${X(u).toFixed(2)} ${Y(v).toFixed(2)}`;
+  const o = sh.out;
+  const st = (c, w, dash) => `fill="none" stroke="${c}" stroke-width="${w}"${dash ? ` stroke-dasharray="${dash}"` : ''} stroke-linejoin="round"`;
+  return {
+    X, Y, s,
+    poly(pts, close = true, c = INK, w = 1.3, dash = '') { o.push(`<path d="M${pts.map(P2).join('L')}${close ? 'Z' : ''}" ${st(c, w, dash)}/>`); },
+    rect(u0, v0, u1, v1, c = INK, w = 1.3, dash = '') { this.poly([[u0, v0], [u1, v0], [u1, v1], [u0, v1]], true, c, w, dash); },
+    circ(u, v, r, c = INK, w = 1.3, dash = '') { o.push(`<circle cx="${X(u)}" cy="${Y(v)}" r="${r * s}" ${st(c, w, dash)}/>`); },
+    line(a, b, c = INK, w = 1.3, dash = '') { o.push(`<path d="M${P2(a)}L${P2(b)}" ${st(c, w, dash)}/>`); },
+    cl(a, b) { this.line(a, b, CEN, .6, '14 3 2 3'); },
+    hid(a, b) { this.line(a, b, HID, .8, '5 3'); },
+    phantom(pts, close = true) { this.poly(pts, close, THIN, .8, '16 3 2 3 2 3'); },
+    arc(cu, cv, r, a0, a1, c = INK, w = 1.3, dash = '') { const n = 48, pts = []; for (let i = 0; i <= n; i++) { const a = a0 + (a1 - a0) * i / n; pts.push([cu + r * Math.cos(a), cv + r * Math.sin(a)]); } this.poly(pts, false, c, w, dash); },
+    text(u, v, t, opt = {}) { o.push(`<text x="${(X(u) + (opt.dx || 0)).toFixed(1)}" y="${(Y(v) + (opt.dy || 0)).toFixed(1)}" fill="${opt.c || INK}" font-size="${opt.size || 10}" font-family="${opt.font || 'JetBrains Mono, monospace'}" text-anchor="${opt.anchor || 'middle'}"${opt.rot ? ` transform="rotate(${opt.rot} ${(X(u) + (opt.dx || 0)).toFixed(1)} ${(Y(v) + (opt.dy || 0)).toFixed(1)})"` : ''}${opt.weight ? ` font-weight="${opt.weight}"` : ''} letter-spacing="${opt.ls ?? .4}">${t}</text>`); },
+    label(u, v, t, sub) { this.text(u, v, t, { size: 11, weight: 600, font: 'Archivo, Arial', ls: 1.4, dy: 0 }); if (sub) this.text(u, v, sub, { size: 8.5, c: THIN, dy: 13 }); },
+    // linear dimension between model points, offset in px perpendicular to a→b
+    dim(a, b, off, t, opt = {}) {
+      const ax = X(a[0]), ay = Y(a[1]), bx = X(b[0]), by = Y(b[1]); let dx = bx - ax, dy = by - ay; const L = Math.hypot(dx, dy) || 1; dx /= L; dy /= L;
+      const nx = -dy, ny = dx, p1 = [ax + nx * off, ay + ny * off], p2 = [bx + nx * off, by + ny * off], e = Math.sign(off) * 4;
+      o.push(`<path d="M${ax + nx * 3 * Math.sign(off)} ${ay + ny * 3 * Math.sign(off)}L${p1[0] + nx * e} ${p1[1] + ny * e}M${bx + nx * 3 * Math.sign(off)} ${by + ny * 3 * Math.sign(off)}L${p2[0] + nx * e} ${p2[1] + ny * e}" stroke="${DIMC}" stroke-width=".55" fill="none"/>`);
+      const ar = (p, d) => `M${p[0]} ${p[1]}l${(d * dx * 7 + nx * 2.2).toFixed(2)} ${(d * dy * 7 + ny * 2.2).toFixed(2)}l${(-nx * 4.4).toFixed(2)} ${(-ny * 4.4).toFixed(2)}z`;
+      const inside = L > 34;
+      o.push(`<path d="M${p1[0]} ${p1[1]}L${p2[0]} ${p2[1]}" stroke="${DIMC}" stroke-width=".7"/>`);
+      o.push(`<path d="${ar(p1, inside ? 1 : -1)}${ar(p2, inside ? -1 : 1)}" fill="${DIMC}"/>`);
+      let ang = Math.atan2(dy, dx) * 180 / Math.PI; if (ang > 90) ang -= 180; if (ang < -90) ang += 180;
+      const mx = (p1[0] + p2[0]) / 2 + nx * 6 * Math.sign(off) * (opt.flip ? -1 : 1) + (opt.tx || 0), my = (p1[1] + p2[1]) / 2 + ny * 6 * Math.sign(off) * (opt.flip ? -1 : 1) + (opt.ty || 0);
+      o.push(`<text x="${mx}" y="${my}" fill="${DIMC}" font-size="${opt.size || 10}" font-family="JetBrains Mono, monospace" text-anchor="middle" dominant-baseline="middle" transform="rotate(${ang} ${mx} ${my})" style="paint-order:stroke" stroke="#0b2646" stroke-width="3">${t}</text>`);
+    },
+    // angular dimension around a centre
+    adim(c, r, a0, a1, t, opt = {}) {
+      this.arc(c[0], c[1], r, a0, a1, DIMC, .7);
+      const am = (a0 + a1) / 2 + (opt.shift || 0), rr = r + (opt.out ?? 10) / s;
+      this.text(c[0] + rr * Math.cos(am), c[1] + rr * Math.sin(am), t, { c: DIMC, size: opt.size || 10, dy: 3 });
+    },
+    note(a, txt, dx, dy, anchor = 'start') {
+      const ax = X(a[0]), ay = Y(a[1]); o.push(`<path d="M${ax} ${ay}L${ax + dx} ${ay + dy}h${anchor === 'start' ? 14 : -14}" stroke="${DIMC}" stroke-width=".6" fill="none"/><circle cx="${ax}" cy="${ay}" r="1.8" fill="${DIMC}"/>`);
+      o.push(`<text x="${ax + dx + (anchor === 'start' ? 18 : -18)}" y="${ay + dy + 3}" fill="${DIMC}" font-size="9.5" font-family="JetBrains Mono, monospace" text-anchor="${anchor}">${txt}</text>`);
+    },
+    hatch(pts, gap = 5) {
+      const id = 'h' + Math.random().toString(36).slice(2, 7);
+      o.push(`<clipPath id="${id}"><path d="M${pts.map(P2).join('L')}Z"/></clipPath><g clip-path="url(#${id})" stroke="${THIN}" stroke-width=".45">` +
+        Array.from({ length: 200 }, (_, i) => `<line x1="${X(Math.min(...pts.map(p => p[0]))) - 400 + i * gap}" y1="${Y(Math.max(...pts.map(p => p[1]))) - 10}" x2="${X(Math.min(...pts.map(p => p[0]))) - 400 + i * gap + 600}" y2="${Y(Math.max(...pts.map(p => p[1]))) + 590}"/>`).join('') + '</g>');
+    },
+  };
+}
+const rot2 = ([s, t], a) => [s * Math.cos(a) - t * Math.sin(a), s * Math.sin(a) + t * Math.cos(a)];   // rotate a swing-plane point about the pivot
+function sheetGA() {
+  const sh = Sheet(1, '50 J CHARPY IMPACT TESTER · GENERAL ARRANGEMENT', '1:6 @ A3', 'AS NOTED · SEE BOM'); const o = sh.out;
+  const A = View(sh, 330, 610, .5);                      // side elevation: u = z, v = y
+  A.label(0, -150, 'SIDE ELEVATION', 'swing plane · from operator side');
+  const pv = [0, G.pivotY];
+  A.line([-560, -28], [560, -28], THIN, .8); A.text(-555, -24, 'BENCH', { size: 8, c: THIN, anchor: 'start', dy: -4 });
+  A.rect(-500, -16, 500, 0); for (const z of [-460, 460]) { A.rect(z - 24, -28, z + 24, -22); A.rect(z - 6, -22, z + 6, -16); }
+  A.rect(-60, 0, 60, 10); A.rect(-30, 10, 30, 459); A.rect(-75, 459, 75, 469);           // column, flange, top plate
+  A.poly([[30, 10], [82, 10], [30, 80]]); A.poly([[-30, 10], [-82, 10], [-30, 80]]);
+  A.rect(-63.5, 469, 63.5, 483); A.rect(-33, 483, 33, 505); A.circ(0, G.pivotY, 31); A.circ(0, G.pivotY, 10);
+  A.cl([-90, G.pivotY], [90, G.pivotY]); A.cl([0, G.pivotY - 60], [0, G.pivotY + 60]);
+  // anvil bed, support, anvil, specimen, tray
+  A.rect(-20, 0, 60, 90); A.rect(-12, 90, 10, 110); A.rect(10, 90, 34, 125); A.rect(0, 110, 10, 115, DIMC, 1.2);
+  A.rect(140, 0, 430, 3); A.line([140, 0], [140, 20]); A.line([430, 0], [430, 20]);
+  // pendulum hanging (solid) and latched (phantom)
+  const pend = a => { const hp = hammerOutline().map(p => rot2([p[0], p[1] + G.pivotY - G.pivotY], a)).map(([s, t]) => [s, t + G.pivotY]);
+    const arm = [[-16, -28], [16, -28], [16, -300], [-16, -300]].map(p => rot2(p, a)).map(([s, t]) => [s, t + G.pivotY]); return { hp, arm }; };
+  const p0 = pend(0); A.poly(p0.hp); A.poly(p0.arm); A.circ(0, G.pivotY, 30);
+  const p1 = pend(-150 * DEG); A.phantom(p1.hp); A.phantom(p1.arm);
+  A.arc(0, G.pivotY, G.L, -Math.PI / 2 - 150 * DEG, -Math.PI / 2 + 150 * DEG, THIN, .6, '6 4');
+  A.arc(0, G.pivotY, G.hamC + G.hamR, -Math.PI / 2 - .35, -Math.PI / 2 + .35, HID, .6, '3 3');
+  // guard outline
+  A.phantom([[-490, 0], [-490, G.guardH], [490, G.guardH], [490, 0]], false);
+  // dimensions
+  A.dim([-500, -16], [500, -16], 46, '1000');
+  A.dim([520, 0], [520, G.pivotY], -10, String(G.pivotY), { flip: false });
+  A.note([0, G.pivotY - G.L], 'R390 · CENTRE OF PERCUSSION', -110, -190, 'end');
+  A.adim(pv, 120, -Math.PI / 2, -Math.PI / 2 - 150 * DEG, '150° RELEASE', { out: 18 });
+  A.dim([490, 0], [490, G.guardH], -70, String(G.guardH));
+  A.note([0, 112.5], 'SPECIMEN 10×5×55 KV2', -150, -110, 'end');
+  A.note([0, G.pivotY - G.hamC - G.hamR], 'CLEARANCE 18.8 TO BASE', -150, 34, 'end');
+  A.note([-490, 5], 'BASE PL 16 S355', 70, -40);
+  // end elevation: u = x, v = y
+  const B = View(sh, 880, 610, .5);
+  B.label(0, G.guardH + 40, 'END ELEVATION', 'from the front, looking along the swing');
+  B.line([-230, -28], [230, -28], THIN, .8);
+  B.rect(-180, -16, 180, 0); for (const x of [-150, 150]) { B.rect(x - 24, -28, x + 24, -22); B.rect(x - 6, -22, x + 6, -16); }
+  for (const sx of [-1, 1]) {
+    const X0 = sx * G.colX;
+    B.rect(X0 - 60, 0, X0 + 60, 10); B.rect(X0 - 30, 10, X0 + 30, 459); B.hid([X0 - 25, 10], [X0 - 25, 459]); B.hid([X0 + 25, 10], [X0 + 25, 459]);
+    B.rect(X0 - 35, 459, X0 + 35, 469); B.rect(X0 - 19, 469, X0 + 19, 534);
+    B.rect(sx * 18, 0, sx * 38, 90); B.rect(sx * 18, 90, sx * 40, 110); B.rect(sx * 20, 110, sx * 40, 125);
+  }
+  B.rect(-146, G.pivotY - 10, 140, G.pivotY + 10); B.rect(-18, G.pivotY - 30, 18, G.pivotY + 30); B.rect(-16, G.pivotY - 300, 16, G.pivotY - 28);
+  B.rect(-16.15, G.pivotY - G.hamC - G.hamR, 16.15, G.pivotY - G.hamC + G.hamR); B.rect(-27.5, 110, 27.5, 115, DIMC, 1.2);
+  B.rect(-31, G.pivotY - 52, -23, G.pivotY + 52); B.rect(-140.5, G.pivotY - 55, -115.5, G.pivotY + 55); B.rect(-161, G.pivotY - 20, -159, G.pivotY + 20); B.rect(-179, G.pivotY - 55, -173, G.pivotY + 35);
+  B.rect(116.5, G.pivotY - 88, 119.5, G.pivotY + 88); B.rect(129, G.pivotY - 16, 139, G.pivotY + 16);
+  B.line([-205, G.pivotY + 70], [-30, G.pivotY + 70]); B.rect(-216, G.pivotY + 57, -204, G.pivotY + 105, DIMC, 1);
+  B.rect(-150, 0, 150, 20, THIN, .7);
+  B.phantom([[-170, 0], [-170, G.guardH], [170, G.guardH], [170, 0]], false);
+  B.cl([0, -10], [0, G.pivotY + 80]); B.cl([-190, G.pivotY], [160, G.pivotY]);
+  B.dim([-180, -16], [180, -16], 26, '360');
+  B.dim([-G.colX, 469], [G.colX, 469], -100, '148 C/C');
+  B.note([-128, G.pivotY - 55], 'BRAKE DRUM Ø110', -70, 40, 'end');
+  B.note([118, G.pivotY + 88], 'DIAL Ø170', 40, -50);
+  B.note([-210, G.pivotY + 105], 'RELEASE', -20, -40, 'end');
+  B.note([-160, G.pivotY - 20], 'ENCODER AS5048A', -30, 120, 'end');
+  B.note([0, G.pivotY - 300], 'ARM Ø32×4', 60, 30);
+  // notes
+  const n = ['NOTES', '1. Pendulum M = 8.00 kg, d = 340.9 mm, E₀ = 49.95 J at 150°.', '2. Trim to 50.0 J ±0.5 % with brass plugs at calibration.', '3. Striker edge on span centre ±0.5 mm; shaft level 0.1 mm/m.', '4. Guard interlock (EN ISO 14119) inhibits the release.', '5. Weld frame to EN ISO 5817 C; paint RAL 7016.'];
+  n.forEach((t, i) => o.push(`<text x="36" y="${40 + i * 14}" fill="${i ? INK : DIMC}" font-size="${i ? 9.5 : 10}" font-family="JetBrains Mono, monospace">${t}</text>`));
+  return sh;
+}
+function sheetSpecimen() {
+  const sh = Sheet(2, 'TEST SPECIMEN · HALF-WIDTH V-NOTCH KV2', '5:1 / 30:1', 'A36 · 6061-T6 · GJL-200'); const o = sh.out;
+  const L = G.specLen, A = View(sh, 360, 260, 9);           // plan: u = x, v = z (notch on top)
+  A.label(0, -9, 'FRONT VIEW', 'striking face below, notch above');
+  const a = G.notch * Math.tan(22.5 * DEG);
+  A.poly([[-L / 2, 0], [L / 2, 0], [L / 2, 10], [a, 10], [0, 8], [-a, 10], [-L / 2, 10]]);
+  A.cl([0, -3], [0, 13]); A.cl([-L / 2 - 3, 5], [L / 2 + 3, 5]);
+  A.dim([-L / 2, 10], [L / 2, 10], -40, '55 ±0.60');
+  A.dim([L / 2, 0], [L / 2, 10], -30, '10 ±0.075');
+  A.dim([-L / 2, 10], [0, 10], -18, '27.5 ±0.42', { size: 9 });
+  A.dim([-L / 2, 0], [-L / 2, 8], 30, '8 ±0.075', { size: 9 });
+  A.note([0, 0], 'STRIKE HERE · R2 STRIKER', 60, 76);
+  A.rect(-G.span / 2, -5, -G.span / 2 - .1, -1.5, THIN, 1); A.rect(G.span / 2, -5, G.span / 2 + .1, -1.5, THIN, 1);
+  A.dim([-G.span / 2, -2], [G.span / 2, -2], 30, 'SUPPORT SPAN 40', { size: 9 });
+  const B = View(sh, 360, 470, 9);                           // underside: u = x, v = y
+  B.label(0, -6.5, 'PLAN', '');
+  B.rect(-L / 2, 0, L / 2, 5); B.hid([0, 0], [0, 5]); B.hid([-a, 0], [-a, 5]); B.hid([a, 0], [a, 5]);
+  B.dim([L / 2, 0], [L / 2, 5], -30, '5 ±0.05');
+  const C = View(sh, 780, 260, 9);                           // end view: u = y, v = z
+  C.label(2.5, -9, 'END VIEW', '');
+  C.rect(0, 0, 5, 10); C.hid([0, 8], [5, 8]);
+  // notch detail 30:1
+  const D = View(sh, 1010, 640, 30);
+  D.label(0, 5.3, 'DETAIL A · 30:1', 'notch');
+  const r = .25;
+  const cc = 8 + r, tx = r * Math.cos(22.5 * DEG), tzz = cc - r * Math.sin(22.5 * DEG);
+  const edgeX = z => tx + (z - tzz) * Math.tan(22.5 * DEG);
+  const pts = [[-3, 10], [-edgeX(10), 10], [-tx, tzz]];
+  for (let i = 0; i <= 12; i++) { const ang = Math.PI + 22.5 * DEG + (135 * DEG) * i / 12; pts.push([r * Math.cos(ang), cc + r * Math.sin(ang)]); }
+  pts.push([tx, tzz], [edgeX(10), 10], [3, 10], [3, 6.5], [-3, 6.5]);
+  D.poly(pts); D.hatch([[-3, 6.5], [3, 6.5], [3, 10], [edgeX(10), 10], [tx, tzz], [0, 8], [-tx, tzz], [-edgeX(10), 10], [-3, 10]], 6);
+  D.cl([0, 6.2], [0, 10.6]);
+  D.adim([0, cc], 2.3, Math.PI / 2 - 22.5 * DEG, Math.PI / 2 + 22.5 * DEG, '45° ±2°', { out: 14 });
+  D.dim([3, 8], [3, 10], -22, '2 ±0.075', { size: 9 });
+  D.note([r * Math.cos(-Math.PI / 2 - .4), cc + r * Math.sin(-Math.PI / 2 - .4)], 'R0.25 ±0.025', 60, 40);
+  o.push(`<text x="36" y="560" fill="${DIMC}" font-size="10" font-family="JetBrains Mono, monospace">NOTES</text>`);
+  ['1. Geometry after ISO 148-1 sub-size (B = 5 mm) with the 2 mm striker.', '2. Notch axis normal to the longitudinal axis within 90° ±2°; on centre ±1 mm.', '3. Machine the notch last; no burrs, no heat. Grind faces Ra 5 max, notch Ra 2.', '4. Test within 5 s of leaving the bath (ASTM E23); overcool as specified.', '5. Report KV2 in J, lateral expansion in mm and % shear fracture.'].forEach((t, i) =>
+    o.push(`<text x="36" y="${576 + i * 15}" fill="${INK}" font-size="9.5" font-family="JetBrains Mono, monospace">${t}</text>`));
+  return sh;
+}
+function sheetPendulum() {
+  const sh = Sheet(3, 'PENDULUM ASSEMBLY · C-HAMMER', '1:3 / 1:2', 'S355 · 1045 · D2 (STRIKER)'); const o = sh.out;
+  const A = View(sh, 260, 90, .95);                 // pendulum side: u = z, v = y relative to pivot
+  A.label(0, -555, 'SIDE VIEW', 'hanging, swing plane');
+  A.poly(hammerOutline()); A.rect(-16, -28, 16, -300); A.circ(0, 0, 30); A.circ(0, 0, 10); A.rect(-22, -278, 22, -304);
+  A.rect(G.mouthBack, -G.L - G.mouthH / 2, 0, -G.L + G.mouthH / 2, DIMC, 1); A.line([strikerProfile().zFlank, -G.L - G.mouthH / 2], [strikerProfile().zFlank, -G.L + G.mouthH / 2], DIMC, .7);
+  A.cl([-110, 0], [110, 0]); A.cl([0, 30], [0, -500]); A.cl([-110, -G.hamC], [110, -G.hamC]);
+  A.circ(0, -G.hamC, 3, DIMC, 1);
+  A.line([-6, -340.93], [6, -340.93], DIMC, 1.4); A.line([0, -334.93], [0, -346.93], DIMC, 1.4);
+  A.dim([-110, 0], [-110, -340.93], 18, 'd = 340.9 (CG)');
+  A.dim([-150, 0], [-150, -G.L], 18, 'R390 COP');
+  A.dim([110, 0], [110, -G.hamC], -18, '386.75');
+  A.dim([G.hamR, -G.hamC], [-G.hamR, -G.hamC], 140, 'Ø194');
+  A.dim([G.mouthBack, -G.L - G.mouthH / 2], [G.mouthBack, -G.L + G.mouthH / 2], 20, '34');
+  A.note([90, -G.L], 'MOUTH · SPECIMEN ENTERS HERE', 40, 50);
+  A.note([0, -G.L], 'STRIKER EDGE ON ARM CENTRE LINE', 60, -110);
+  const B = View(sh, 560, 90, .95);                 // pendulum front: u = x
+  B.label(0, -555, 'FRONT VIEW', '');
+  B.rect(-16.15, -G.hamC - G.hamR, 16.15, -G.hamC + G.hamR); B.rect(-16, -28, 16, -300); B.rect(-18, -30, 18, 30);
+  B.rect(-8, -G.L - 17, 8, -G.L + 17, DIMC, 1); B.rect(-31, -52, -23, 52); B.cl([0, 40], [0, -500]);
+  B.dim([-16.15, -G.hamC - G.hamR], [16.15, -G.hamC - G.hamR], 22, '32.3');
+  B.dim([-18, 30], [18, 30], -16, '36');
+  for (const [t, s] of [[-332, -58], [-440, -40], [-446, 34]]) { A.circ(s, t, 5, DIMC, 1); }
+  A.note([-58, -332], 'TRIM PLUGS M10 BRASS ×3', -40, 30, 'end');
+  // mass properties
+  const rows = [['MASS M', PH.M.toFixed(2) + ' kg'], ['CG FROM PIVOT d', (PH.d * 1000).toFixed(1) + ' mm'], ['INERTIA I', PH.I.toFixed(4) + ' kg·m²'], ['CENTRE OF PERCUSSION', '390.0 mm'],
+    ['PERIOD', '1.253 s'], ['E₀ AT 150°', PH.E0.toFixed(2) + ' J'], ['STRIKE VELOCITY', PH.v0.toFixed(2) + ' m/s'], ['ASTM E23 RANGE', '3.0 – 6.0 m/s']];
+  const tx = 780, ty = 80;
+  o.push(`<rect x="${tx}" y="${ty}" width="380" height="${28 + rows.length * 22}" fill="rgba(11,38,70,.9)" stroke="${INK}"/><text x="${tx + 12}" y="${ty + 18}" fill="${DIMC}" font-size="10" font-family="JetBrains Mono, monospace">MASS PROPERTIES</text>`);
+  rows.forEach(([k, v], i) => o.push(`<line x1="${tx}" x2="${tx + 380}" y1="${ty + 26 + i * 22}" y2="${ty + 26 + i * 22}" stroke="${THIN}" stroke-width=".5"/><text x="${tx + 12}" y="${ty + 41 + i * 22}" fill="${THIN}" font-size="9.5" font-family="JetBrains Mono, monospace">${k}</text><text x="${tx + 368}" y="${ty + 41 + i * 22}" fill="${INK}" font-size="10.5" font-family="JetBrains Mono, monospace" text-anchor="end">${v}</text>`));
+  ['NOTES', '1. Hammer profile waterjet from 35 plate, faced to 32.3, mouth milled.', '2. Arm tube pressed and pinned into hub and boss; Loctite 638.', '3. Striker D2, 60 HRC, ground; seat flat to 0.01, 2× M6 from rear.', '4. Balance: find CG on knife edges, set trim plugs for 50.0 J.', '5. Centre of percussion: verify by free-swing period, T = 2π√(q/g).'].forEach((t, i) =>
+    o.push(`<text x="${tx - 20}" y="${ty + 250 + i * 15}" fill="${i ? INK : DIMC}" font-size="9" font-family="JetBrains Mono, monospace">${t}</text>`));
+  return sh;
+}
+function sheetAnvils() {
+  const sh = Sheet(4, 'STRIKER, ANVILS & SUPPORTS · ISO 148-1 KV2', '6:1', 'D2 TOOL STEEL 58–62 HRC, GROUND'); const o = sh.out;
+  const A = View(sh, 420, 330, 6);                 // plan: u = x, v = z (z downward on paper? keep z up = toward anvils)
+  A.label(0, -44, 'PLAN · AT STRIKER HEIGHT', 'striker approaching from below');
+  for (const sx of [-1, 1]) { const pr = anvilProfile(sx); A.poly(pr.map(([x, z]) => [x, z])); A.hatch(pr, 5);
+    A.rect(sx * 18, -12, sx * 40, 10, THIN, .8, '5 3'); }
+  const a = G.notch * Math.tan(22.5 * DEG);
+  A.poly([[-27.5, 0], [27.5, 0], [27.5, 10], [a, 10], [0, 8], [-a, 10], [-27.5, 10]], true, DIMC, 1.2);
+  const sp = strikerProfile(); A.poly(sp.pts.map(([x, z]) => [x, z - .0]));
+  A.cl([0, -40], [0, 40]);
+  A.dim([-20, 10], [20, 10], -40, '40 +0.20/0');
+  A.adim([0, -2], 10, -Math.PI / 2 - 15 * DEG, -Math.PI / 2 + 15 * DEG, '30° ±1°', { out: 6, shift: 0 });
+  A.note([-1.2, -1.2], 'STRIKER R2 +0.5/0', -150, 70, 'end');
+  A.note([20.3, 10.3], 'ANVIL R1 +0.5/0', 90, 60);
+  A.note([22.5, 22], 'TAPER 11° ±1°', 110, 90);
+  A.note([-29, -6], 'SUPPORT (BELOW)', -60, 60, 'end');
+  A.dim([-27.5, 0], [27.5, 0], 44, '55', { size: 9 });
+  const B = View(sh, 1000, 500, 3);                  // elevation of the seat: u = x, v = y above the bed
+  B.label(0, -42, 'ELEVATION · SEAT', 'from the striker side');
+  for (const sx of [-1, 1]) { B.rect(sx * 18, -20, sx * 38, 0); B.rect(sx * 18, 0, sx * 40, 20); B.rect(sx * 20, 20, sx * 40, 35); }
+  B.rect(-27.5, 20, 27.5, 25, DIMC, 1.2); B.rect(-16.15, -20, 16.15, 5, THIN, .7, '5 3');
+  B.dim([40, 20], [40, 35], -20, '15'); B.dim([-27.5, 25], [-27.5, 20], 26, '5');
+  B.note([0, -8], 'LOWER JAW PASSES IN THE 36 CHANNEL', -90, 40, 'end');
+  ['NOTES', '1. Anvil and support faces ground, square to the swing plane within 0.1 mm.', '2. Striker edge parallel to the anvil faces within 0.1 mm over 5 mm.', '3. Specimen located by tongs on span centre ±0.5 mm.', '4. Replace striker and anvils if the radii fall outside the tolerance.'].forEach((t, i) =>
+    o.push(`<text x="720" y="${70 + i * 15}" fill="${i ? INK : DIMC}" font-size="9" font-family="JetBrains Mono, monospace">${t}</text>`));
+  return sh;
+}
+const SHEETS = [sheetGA, sheetSpecimen, sheetPendulum, sheetAnvils];
+const sheetCache = [];
+function showSheet(i) {
+  if (!sheetCache[i]) { const sh = SHEETS[i](); sheetCache[i] = `<svg viewBox="0 0 ${sh.W} ${sh.H}" role="img" aria-label="Drawing sheet ${i + 1}"><rect width="${sh.W}" height="${sh.H}" fill="#0b2646"/>${sh.out.join('')}</svg>`; }
+  $('#cp-sheet').innerHTML = sheetCache[i];
+}
+$('#cp-sheet').addEventListener('click', () => { $('#cp-vscroll').innerHTML = $('#cp-sheet').innerHTML; $('#cp-viewer').hidden = false; document.documentElement.style.overflow = 'hidden'; });
+const closeViewer = () => { $('#cp-viewer').hidden = true; document.documentElement.style.overflow = ''; };
+$('#cp-vclose').addEventListener('click', closeViewer);
+addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#cp-viewer').hidden) closeViewer(); });
+showSheet(0);
+
+/* ================= bill of materials ================= */
+const RHO = { steel: 7.85e-6, d2: 7.7e-6, ci: 7.2e-6, alu: 2.7e-6, pc: 1.2e-6, brass: 8.5e-6 };
+const vol = { box: (a, b, c) => a * b * c, cyl: (r, l) => Math.PI * r * r * l, tube: (ro, ri, l) => Math.PI * (ro * ro - ri * ri) * l };
+const BOM = [
+  ['Structure'],
+  ['01', 'Base plate', 1, 'S355 plate 360 × 1000 × 16', 'Plasma cut, faces milled, 4 × M12 levelling, 4 × Ø14 anchor', vol.box(360, 16, 1000) * RHO.steel, 140],
+  ['02', 'Levelling foot, swivel Ø50', 4, 'M12 × 60, zinc, NBR pad', 'Bought in', .22, 6],
+  ['03', 'Column', 2, 'SHS 60 × 60 × 5 × 449, S355', 'Saw, mill ends square, weld to flange', vol.box(60, 449, 60) * RHO.steel - vol.box(50, 449, 50) * RHO.steel, 18],
+  ['04', 'Column flange', 2, 'S355 120 × 120 × 10', 'Cut, drill 4 × M10', vol.box(120, 10, 120) * RHO.steel, 8],
+  ['05', 'Column top plate', 2, 'S355 70 × 150 × 10', 'Cut, drill and tap 2 × M10 for pillow block', vol.box(70, 10, 150) * RHO.steel, 9],
+  ['06', 'Gusset', 4, 'S355 8 mm, 52 × 70', 'Cut, fillet weld', vol.box(52, 70, 8) / 2 * RHO.steel, 2],
+  ['Pivot'],
+  ['07', 'Pillow block UCP204', 2, 'Cast iron housing, 20 mm insert', 'Bought in, shim to level', .7, 11],
+  ['08', 'Pivot shaft Ø20 h6 × 292', 1, '1045, induction hardened', 'Turn, grind, magnet pocket in −x end', vol.cyl(10, 292) * RHO.steel, 28],
+  ['Pendulum'],
+  ['09', 'Split clamp hub', 1, '1045 Ø60 × 36', 'Turn, bore H7, slit, 2 × M8', vol.tube(30, 10, 36) * RHO.steel, 30],
+  ['10', 'Arm tube Ø32 × 4 × 274', 1, 'E355 seamless', 'Saw, press-fit and pin', vol.tube(16, 12, 274) * RHO.steel, 12],
+  ['11', 'Hammer (C-disc) Ø194 × 32.3', 1, 'S355 plate', 'Waterjet, face, mill mouth 34 wide, socket boss', 6.67, 90],
+  ['12', 'Striker insert, ISO 2 mm', 1, 'D2 tool steel 60 HRC', 'Wire EDM, harden, grind R2 and 30° faces', vol.box(16, 34, 30) * RHO.d2, 65],
+  ['13', 'Trim plug M10', 3, 'CuZn39Pb3 brass', 'Turn; length set at calibration', vol.cyl(5, 32) * RHO.brass, 2],
+  ['Specimen seat'],
+  ['14', 'Anvil bed block', 2, '1045 20 × 90 × 80', 'Mill, grind top, 2 × M8 to base', vol.box(20, 90, 80) * RHO.steel, 15],
+  ['15', 'Specimen support', 2, 'D2 58 HRC', 'Mill, harden, grind', vol.box(22, 20, 22) * RHO.d2, 20],
+  ['16', 'Anvil, R1, 11° taper', 2, 'D2 58 HRC', 'Mill, harden, grind radius', vol.box(22, 35, 24) * .85 * RHO.d2, 24],
+  ['Release and brake'],
+  ['17', 'Catch plate with tooth', 1, '4140 Q&T, Ø104 × 8', 'Turn, mill tooth, induction harden tooth', vol.cyl(52, 8) * RHO.steel, 25],
+  ['18', 'Pawl, spring and bracket', 1, '4140 pawl; spring steel', 'Mill pawl, harden nose; bracket welded', .42, 30],
+  ['19', 'Release cross-shaft and handle', 1, 'Ø10 1045, red grip', 'Turn, bushes in bracket and guard', .2, 15],
+  ['20', 'Safety pin with ring', 1, 'Stainless Ø5', 'Bought in', .02, 4],
+  ['21', 'Brake drum Ø110 × 25', 1, 'EN-GJL-250', 'Turn, key to shaft', vol.tube(55, 10, 25) * RHO.ci, 25],
+  ['22', 'Brake band, lining and lever', 1, 'Spring steel band, woven lining', 'Form, rivet, weld lever', .55, 30],
+  ['Measurement'],
+  ['23', 'Dial face Ø170, 0–50 J', 1, '3 mm 5052 aluminium, printed', 'Laser cut; scale printed from E(β)', vol.cyl(88, 3) * RHO.alu, 20],
+  ['24', 'Drag pointer and friction washer', 1, 'Brass needle, PTFE washer', 'Laser cut, light spring preload', .03, 12],
+  ['25', 'Pointer dog collar', 1, 'Steel Ø32 clamp collar + pin', 'Bought in, pin added', .05, 6],
+  ['26', 'Magnetic encoder', 1, 'AS5048A board + Ø6 × 2.5 diametric magnet', 'Bought in; 1.5 mm air gap', .02, 28],
+  ['27', 'Controller', 1, 'ESP32, 1.3" OLED, enclosure', 'Firmware computes KV and logs runs', .25, 25],
+  ['Guarding'],
+  ['28', 'Guard frame', 1, '20 × 20 aluminium extrusion ≈ 11.7 m + brackets', 'Cut to length, assemble', 11.7 * .45, 85],
+  ['29', 'Guard panels', 5, '4 mm polycarbonate', 'Cut, drill', 2.86e6 * 4 * RHO.pc / 5, 24],
+  ['30', 'Door hinge, handle, interlock switch', 1, 'Coded safety switch to EN ISO 14119', 'Bought in', .35, 45],
+  ['31', 'Catch tray with rubber mat', 1, '1.5 mm steel sheet, 3 mm NBR', 'Fold, rivet', .9 + vol.box(296, 3, 286) * 1.3e-6, 20],
+  ['32', 'Fasteners and small parts', 1, 'M6–M12 socket heads, washers, dowels', 'Bought in', .8, 25],
+];
+function buildBOM() {
+  let mass = 0, cost = 0, n = 0; const groups = []; let g = null;
+  for (const r of BOM) {
+    if (r.length === 1) { g = { name: r[0], rows: [], m: 0, c: 0 }; groups.push(g); continue; }
+    const [no, part, q, spec, proc, m, c] = r; g.rows.push(r); g.m += m * q; g.c += c * q; mass += m * q; cost += c * q; n++;
+  }
+  $('#cp-bomg').innerHTML = groups.map(G => `<details class="fold"><summary>${G.name} <span>${G.rows.length}</span><em>${G.m.toFixed(1)} kg</em><em>$${Math.round(G.c)}</em></summary>` +
+    G.rows.map(([no, part, q, spec, proc, m, c]) => `<div class="bline"><b>${no}</b><div>${part}${q > 1 ? ' ×' + q : ''}<small>${spec}</small><small>${proc}</small></div><i>${(m * q).toFixed(2)} kg<small>$${c * q}</small></i></div>`).join('') + '</details>').join('');
+  $('#cp-bomsum').innerHTML = [['Line items', n], ['Machine mass', mass.toFixed(1) + ' kg'], ['Est. cost', '≈ $' + Math.round(cost / 10) * 10], ['Fasteners', FASTENERS.length]]
+    .map(([k, v]) => `<div><span>${k}</span><b>${v}</b></div>`).join('');
+  return { mass, cost };
+}
+const tot = buildBOM();
+document.querySelectorAll('#explode p.body').forEach(p => p.innerHTML = p.innerHTML.replace('about 95 kg', 'about ' + Math.round(tot.mass) + ' kg'));
+const SPECS = [
+  ['Capacity', '50 J nominal (49.95 J at 150°)'], ['Release angle', '150° from hanging'], ['Strike velocity', PH.v0.toFixed(2) + ' m/s'],
+  ['Strike radius', '390 mm = centre of percussion'], ['Pendulum mass', PH.M.toFixed(2) + ' kg'], ['Free-swing period', '1.25 s'],
+  ['Specimen', '10 × 5 × 55 mm, V-notch 2 mm, R0.25'], ['Support span', '40 mm'], ['Striker', 'ISO 148-1, R2, 30°'],
+  ['Encoder resolution', '0.022° (14-bit) → under 0.01 J'], ['Friction and windage', '≈ 0.10 J, measured per free swing'],
+  ['Footprint × height', '360 × 1000 × 960 mm'], ['Machine mass', '≈ ' + Math.round(tot.mass) + ' kg'], ['Build cost estimate', '≈ $' + Math.round(tot.cost / 10) * 10 + ' in materials and bought parts'],
+];
+$('#cp-specsdl').innerHTML = SPECS.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('');
+
+/* ---------- fracture faces, bench UI ---------- */
+const macroState = {};
+['steel', 'alu', 'iron'].forEach(m => { const E = MATS[m].E(20); macroState[m] = { T: 20, E, D: deformParams(m, E) }; });
+function drawMacros() {
+  const el = $('#cp-macros'); if (!el) return;
+  if (!el.children.length) el.innerHTML = ['steel', 'alu', 'iron'].map(m => `<figure><canvas width="256" height="160" data-m="${m}"></canvas><figcaption>${MATS[m].short}<b></b></figcaption></figure>`).join('');
+  for (const cv of el.querySelectorAll('canvas')) {
+    const m = cv.dataset.m, st = macroState[m], D = st.D;
+    cv.getContext('2d').drawImage(fractureTexture(m, D.sh, false).image, 0, 0, 256, 160);
+    cv.nextElementSibling.querySelector('b').innerHTML = `${st.T} °C · ${D.E.toFixed(1)} J<br>${Math.round(D.bend / DEG)}° bend · LE ${D.le.toFixed(2)}`;
+  }
+}
+function setStatus(t) { const e = $('#cp-status'); if (e) e.textContent = t; }
+function uiBusy(b) { const g = $('#cp-go'); if (g) g.disabled = b; document.querySelectorAll('#cp-seg button').forEach(x => x.disabled = b); const t = $('#cp-temp'); if (t) t.disabled = b; }
+document.querySelectorAll('#cp-seg button').forEach(b => b.addEventListener('click', () => {
+  S.mat = b.dataset.m; if (S.demo) S.demo.mat = S.mat;
+  document.querySelectorAll('#cp-seg button').forEach(x => x.setAttribute('aria-pressed', x === b));
+  if (S.state === 'ready') loadSpecimen();
+}));
+$('#cp-temp').addEventListener('input', e => { S.T = +e.target.value; if (S.demo) S.demo.T = S.T; $('#cp-tempo').textContent = S.T + ' °C'; if (S.state === 'ready') loadSpecimen(); });
+$('#cp-slow').addEventListener('change', e => S.slow = e.target.checked);
+$('#cp-go').addEventListener('click', () => { if (S.demo) return; release(); });
+
+/* ---------- reference document overlay: why it matters, drawings, BOM ---------- */
+const docEl = $('#cp-doc');
+function openDoc(tab) {
+  docEl.hidden = false; document.documentElement.classList.add('cp-docopen');
+  document.querySelectorAll('#cp-doctabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.t === tab));
+  document.querySelectorAll('.cp-pane').forEach(p => p.hidden = p.dataset.t !== tab);
+  if (tab === 'why') drawDBTT();
+}
+function closeDoc() { docEl.hidden = true; document.documentElement.classList.remove('cp-docopen'); }
+document.addEventListener('click', e => { const b = e.target.closest('[data-cpdoc]'); if (b) openDoc(b.dataset.cpdoc); });
+document.querySelectorAll('#cp-doctabs button').forEach(b => b.addEventListener('click', () => openDoc(b.dataset.t)));
+$('#cp-docclose').addEventListener('click', closeDoc);
+addEventListener('keydown', e => { if (e.key === 'Escape' && !docEl.hidden && $('#cp-viewer').hidden) closeDoc(); });
+document.querySelectorAll('#cp-tabs button').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('#cp-tabs button').forEach(x => x.setAttribute('aria-selected', x === b)); showSheet(+b.dataset.s); }));
+
+/* ---------- the model as the Lab sees it ---------- */
+const root = new THREE.Group();          // the Lab's pivot
+machine.rotation.y = -Math.PI / 2;       // operator side faces the camera
+root.add(machine);
+const toWorldDir = d => [-d[2], d[1], d[0]];     // machine axes → model axes (after the turn above)
+loadSpecimen(); drawMacros(); buildSchedule();
+let curE = 0;
+function explode(e) {
+  curE = e;
+  for (const m of PARTS) { const u = m.userData; m.position.copy(u.base).addScaledVector(u.ex, e); }
+  const ee = smooth(0, 1, e);
+  pend.position.set(0, G.pivotY + 190 * ee, 0);
+  pointer.position.set(124 + 210 * ee, G.pivotY, 0);
+  pawl.position.set(-27 - 120 * ee, latchY + 110 * ee, latchZ - 40 * ee);
+  for (const h of S.halves) if (h.state === 'seat') h.holder.position.set(h.sx * (20 + 70 * ee), G.specY + 160 * ee, 10 + 60 * ee);
+}
+// which Charpy stop is on screen (null when another project is in front)
+function stopId() {
+  if (typeof curProj === 'undefined' || curProj !== 'charpy' || !sections || !sections.length) return null;
+  const s = sections[Math.max(0, Math.min(sections.length - 1, Math.round(sCur)))]; return s ? s.id : null;
+}
+let buildOn = 0, guardShown = true;
+function tick(dt, front) {
+  dt = Math.min(dt, 1 / 20);
+  const sid = stopId(), onTest = sid === 'charpy-test', onBuild = sid === 'charpy-build';
+  demoTick(dt, !front || sid === 'charpy' || sid === 'charpy-how' || sid === 'charpy-docs');
+  // slow motion at the strike: a little for the demo, a lot on the test stop
+  let ts = 1;
+  if (S.state === 'swing' && S.peak === null) {
+    const th = S.th;
+    if (S.demo) ts = (th > -.3 && th < .35) ? .3 : 1;
+    else if (S.slow) { ts = th < 0 ? lerp(1, .025, smooth(-1.0, -.05, th)) : lerp(.025, 1, smooth(.2, .7, th)); if (th < 0 && th > -1.0) ts = Math.min(ts, lerp(.35, .025, smooth(-.5, -.05, th))); }
+  }
+  if (S.slow && !S.demo && S.halves.some(h => h.state === 'fly')) ts = Math.min(ts, .12);
+  const simDt = dt * ts, n = Math.max(1, Math.ceil(simDt / .0004)); if (simDt > 0) for (let i = 0; i < n; i++) simStep(simDt / n);
+  // the impact camera on the test stop
+  let wi = 0;
+  if (onTest && S.slow && !S.demo && S.state === 'swing' && S.peak === null) wi = S.th < 0 ? smooth(-2.0, -.9, S.th) : 1 - smooth(.55, 1.05, S.th);
+  if (onTest && S.slow && !S.demo && S.halves.some(h => h.state === 'fly')) wi = Math.max(wi, .85);
+  S.wi = lerp(S.wi || 0, wi, Math.min(1, dt * 6));
+  // build stop: the pendulum hangs, parts appear step by step
+  buildOn = lerp(buildOn, onBuild ? 1 : 0, Math.min(1, dt * 5));
+  const hang = S.state === 'ready' ? smooth(.3, .9, buildOn) : 0;
+  pend.rotation.x = -lerp(S.th, 0, hang);
+  pointer.rotation.x = -S.pointer;
+  pawl.rotation.x = lerp(pawl.rotation.x, S.pawl ? -.5 : 0, Math.min(1, dt * 14));
+  brakeLever.rotation.x = lerp(brakeLever.rotation.x, S.state === 'brake' ? .25 : 0, Math.min(1, dt * 6));
+  applySteps(dt, onBuild);
+  const ghost = S.wi > .3;
+  if (ghost !== S.ghosted) { S.ghosted = ghost;
+    for (const m of PARTS) { const a = m.userData.asm; if (a === 'anvil' || a === 'guard') continue;
+      if (ghost) { m.userData.cpMat = m.material; const g = m.material.clone(); g.transparent = true; g.opacity = a === 'striker' ? .35 : .1; g.depthWrite = false; m.material = g; }
+      else if (m.userData.cpMat) { m.material.dispose(); m.material = m.userData.cpMat; m.userData.cpMat = null; } } }
+  // the guard fades on the close-up stops and during the impact zoom; the Lab hides it while exploded
+  const gShow = !(S.wi > .3) && curE < .05 && !(onBuild && S.bstep < 8);
+  for (const m of ASM.guard.parts) m.visible = gShow;
+  document.documentElement.classList.toggle('cp-running', onTest && !S.demo && (S.state === 'swing' || S.state === 'brake' || S.state === 'raising'));
+}
+function applySteps(dt, on) {
+  S.bfly = Math.min(1, S.bfly + dt / .9);
+  const cur = S.bstep, e = smooth(0, 1, S.bfly), def = new V3(0, 90, 0);
+  for (const m of PARTS) {
+    const u = m.userData; if (u.asm === 'guard') continue;
+    if (!on) { if (u.cpHid) { m.visible = true; u.cpHid = false; } continue; }
+    if (u.step > cur) { if (m.visible) { m.visible = false; u.cpHid = true; } continue; }
+    if (u.cpHid) { m.visible = true; u.cpHid = false; }
+    if (u.step === cur && curE < .01) { const ex = u.ex.lengthSq() > 1 ? u.ex : def; m.position.copy(u.base).addScaledVector(ex, 1.4 * (1 - e)); }
+    else if (curE < .01) m.position.copy(u.base);
+  }
+  const showSpec = !on || cur >= BSTEPS.length - 1;
+  for (const h of S.halves) h.mesh.visible = showSpec;
+}
+// camera views for the custom stops, in model space (the Lab maps them to the screen)
+const _w = new V3();
+function worldOf(p) { return machine.localToWorld(_w.set(...p)).toArray(); }
+function scaleOf() { return machine.getWorldScale(new V3()).x; }
+const CKEYS = {};
+function charpyKeys(x) {
+  CKEYS.test = { model: 'charpy', focus: [x, 0, 0], dir: toWorldDir([0.9, 0.22, 0.38]), fit: 1.45, offF: 0.2, mex: 0,
+    post: v => { if (!(S.wi > .001)) return v; const k = scaleOf(), d = 400 * k, f = worldOf([0, 114, 14]);
+      return { focus: v.focus.map((a, i) => lerp(a, f[i], S.wi)), dist: lerp(v.dist, d, S.wi), off: lerp(v.off, .14 * d, S.wi) }; } };
+  CKEYS.build = { model: 'charpy', focus: [x, 0, 0], dir: toWorldDir(BSTEPS[S.bstep].dir), fit: 1.3, offF: 0.2, mex: 0,
+    post: v => { const st = BSTEPS[S.bstep], k = scaleOf(), d = st.dist * k * .9; return { focus: worldOf(st.tgt), dist: d, off: (st.off ?? .3) * d * .6 }; } };
+  CKEYS.docs = { model: 'charpy', focus: [x, 0, 0], dir: [0.5, 0.22, 1], fit: 1.35, offF: 0.18, mex: 0 };
+  return [CKEYS.test, CKEYS.build, CKEYS.docs];
+}
+// the camera direction follows the impact view and the build step
+function steerKeys() {
+  if (CKEYS.test) { const a = toWorldDir([0.9, 0.22, 0.38]), b = toWorldDir([0.55, 0.8, 0.25]), w = S.wi || 0; CKEYS.test.dir = a.map((v, i) => lerp(v, b[i], w)); }
+  if (CKEYS.build) { const want = toWorldDir(BSTEPS[S.bstep].dir); CKEYS.build.dir = CKEYS.build.dir.map((v, i) => lerp(v, want[i], .08)); }
+}
+const SPECS_ROWS = SPECS;
+window.__cp = { S, release, step: secs => { for (let i = 0; i < secs / .0004; i++) simStep(.0004); }, setStep: n => setStep(n) };
+return { ad: { id: 'charpy', ex: { pivot: root }, explode, tick: (dt, front) => { tick(dt, front); steerKeys(); }, exclude: ASM.guard.parts },
+  keys: charpyKeys, specs: SPECS_ROWS, setBlueprint: b => { blueprint = b; } };
+}
+
+const CP = makeCharpy();
 
 // project menu (top left): one project on screen at a time
 const PROJECTS = [{id:'jansen', num:pnum('jansen'), title:'Jansen Linkage Leg', short:'Linkage leg', disc:'Mechanism design'},
@@ -4104,6 +5632,7 @@ function keysFor(id){
     {model:id, focus:[M.x,0,0], dir:[0.55,0.24,1],  fit:1.4, offF:-0.17, mex:0},
     {model:id, focus:[M.x,0,0], dir:[-0.25,0.3,1],  fit:1.35, offF:-0.2,  mex:0.35},
     ...SCENES[id].map((sc,si) => ({model:id, focus:[M.x,0,0], dir:sc.dir, si, zoom:sc.zoom, mex:sc.mex, ghost:sc.ghost!==false})),
+    ...(id==='charpy' ? CP.keys(M.x) : []),
     {model:id, focus:[M.x,0,0], dir:[-0.45,0.3,1],  fit:ANATK[id] || 0.98, offF:({ hydro:-0.24, arm:-0.2 }[id] || -0.11), mex:1},
     {model:id, focus:[M.x,0,0], dir:[0.95,0.14,0.5],fit:1.25, offF:0.17,  mex:0.18},
     {model:id, focus:[M.x,0,0], dir:[0.5,0.05,1],   fit:1.5,  offF:-0.26, mex:0.3} ]; }
@@ -4144,6 +5673,7 @@ function boundOf(list, M){
 }
 const SIN_HALF = Math.sin(THREE.MathUtils.degToRad(16));
 function keyView(k){
+  if(k.post){ const v = keyView(Object.assign({}, k, { post:null })); return k.post(v) || v; }
   const M = MODEL[k.model];
   if(k.si !== undefined){
     const sc = M && M.ready && M.scenes ? M.scenes[k.si] : null, b = sc ? sceneBound(sc, M) : null;
@@ -4433,6 +5963,8 @@ const FIN = {
   paint:    c => ({ color:c, roughness:.4, clearcoat:.45, clearcoatRoughness:.25 }),
   anod:     c => ({ color:c, metalness:.55, roughness:.4, clearcoat:.3, clearcoatRoughness:.3 }),
   chrome:   () => ({ color:0xe2e6e8, metalness:1, roughness:.07 }),
+  cast_iron:() => ({ color:0x4b5157, metalness:.6, roughness:.62 }),
+  weld:     () => ({ color:0x50555c, metalness:.7, roughness:.78 }),
   poly:     () => ({ color:0xd6e6ec, roughness:.06, clearcoat:1, transparent:true, opacity:.2, depthWrite:false }),
   tubing:   c => ({ color:c, roughness:.32, clearcoat:.5, clearcoatRoughness:.2 }),
 };
@@ -4450,6 +5982,7 @@ function finishKey(spec){
   if(t.includes('6061')) return 'alu';
   for(const k of ['alu_print','alu_black','alu_hard','steel_zn','tool_steel']) if(t===k) return k;
   for(const k of ['alu','steel','bolt','spring','bearing','brass','bronze','copper','motor','servo','pcb','estop','ferrite','laminations','pbt','rubber','latex','foam','acrylic']) if(t===k) return k;
+  if(FIN[t]) return t;
   return null;
 }
 const CELLHEX = { b9bfc3:'extrusion', '3a4146':'plate', '16191b':'belt', e4e6e4:'powder', '22272a':'alu_black', dadfe1:'chrome', c8cbc6:'powder', e8c547:'paint',
@@ -4792,6 +6325,7 @@ requestAnimationFrame(t=>{ last=t; measure(); frameLoop(t); setTimeout(()=>$('#l
 
 // start loading the other projects once the leg module is on screen
 setTimeout(()=>{
+  onModel(CP.ad).then(() => { const dl = document.getElementById('sp-charpy'); if(dl) dl.innerHTML = CP.specs.slice(0, 9).map(([a,b]) => `<div><dt>${esc(a)}</dt><dd>${esc(b)}</dd></div>`).join(''); });
   loadOriginal(THREE, renderer, onModel, labFetch).catch(err=>{
     console.error(err);
     for(const M of MODELS) if(!M.ready && !M.failed){ M.failed = true; setStatus(M, 'This model could not be loaded.', true); }

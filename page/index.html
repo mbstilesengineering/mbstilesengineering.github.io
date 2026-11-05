@@ -244,14 +244,14 @@ body.bp .tag{background:rgba(11,38,70,.85)}
 .cp-readout .big b{font-size:22px}
 .cp-verdict{font-size:12px;color:#c3cad5;margin:0 0 8px;line-height:1.45}
 .cp-verdict b{color:var(--paper)}
-.cp-fold,.cp-doc .fold{border-top:1px solid var(--hair);border-bottom:1px solid var(--hair);margin:0}
-.cp-fold + .cp-fold,.cp-doc .fold + .fold{border-top:0}
-.cp-fold summary,.cp-doc .fold summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:8px 0;font-family:var(--f-mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--paper);user-select:none}
-.cp-fold summary::-webkit-details-marker,.cp-doc .fold summary::-webkit-details-marker{display:none}
-.cp-fold summary::after,.cp-doc .fold summary::after{content:"+";margin-left:auto;color:var(--brass);font-size:14px;line-height:1}
-.cp-fold[open] summary::after,.cp-doc .fold[open] summary::after{content:"−"}
-.cp-fold summary span,.cp-doc .fold summary span{color:var(--brass)}
-.cp-fold summary:focus-visible,.cp-doc .fold summary:focus-visible{outline:1px solid var(--brass);outline-offset:2px}
+.cp-fold,.cp-wide .fold{border-top:1px solid var(--hair);border-bottom:1px solid var(--hair);margin:0}
+.cp-fold + .cp-fold,.cp-wide .fold + .fold{border-top:0}
+.cp-fold summary,.cp-wide .fold summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:8px 0;font-family:var(--f-mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--paper);user-select:none}
+.cp-fold summary::-webkit-details-marker,.cp-wide .fold summary::-webkit-details-marker{display:none}
+.cp-fold summary::after,.cp-wide .fold summary::after{content:"+";margin-left:auto;color:var(--brass);font-size:14px;line-height:1}
+.cp-fold[open] summary::after,.cp-wide .fold[open] summary::after{content:"−"}
+.cp-fold summary span,.cp-wide .fold summary span{color:var(--brass)}
+.cp-fold summary:focus-visible,.cp-wide .fold summary:focus-visible{outline:1px solid var(--brass);outline-offset:2px}
 .cp-macros{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:4px 0 8px}
 .cp-macros figure{margin:0;display:grid;gap:4px}
 .cp-macros canvas{width:100%;aspect-ratio:8/5;display:block;border:1px solid var(--hair);border-radius:2px}
@@ -270,8 +270,6 @@ body.bp .tag{background:rgba(11,38,70,.85)}
 .cp-dots i.on{background:var(--brass)}
 .cp-docbtns{display:flex;flex-wrap:wrap;gap:8px}
 /* reference overlay */
-.cp-doc{position:fixed;inset:0;z-index:30;background:var(--ink);display:flex;flex-direction:column;padding:calc(12px + env(safe-area-inset-top,0px)) max(16px, env(safe-area-inset-right,0px)) env(safe-area-inset-bottom,0px) max(16px, env(safe-area-inset-left,0px))}
-html.cp-docopen{overflow:hidden}
 .cp-dochead{display:flex;align-items:center;gap:12px;padding:6px 0 12px;border-bottom:1px solid var(--hair)}
 .cp-doctabs{display:flex;flex-wrap:wrap;gap:6px;flex:1}
 .cp-doctabs button,.cp-tabs button{all:unset;cursor:pointer;padding:8px 12px;border:1px solid var(--hair);border-radius:2px;font-family:var(--f-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--steel)}
@@ -299,10 +297,10 @@ html.cp-docopen{overflow:hidden}
 .cp-bomg .fold{break-inside:avoid;border-top:0}
 .cp-bomg summary{display:grid !important;grid-template-columns:minmax(0,1fr) auto 4.5em 3.5em 14px;gap:10px}
 .cp-bomg summary em{font-style:normal;color:var(--steel);font-variant-numeric:tabular-nums;letter-spacing:.04em;text-align:right}
-.cp-doc .bline{display:grid;grid-template-columns:30px minmax(0,1fr) auto;gap:4px 10px;padding:7px 0;border-top:1px solid rgba(196,210,232,.07);font-size:12px;color:#c9d0da}
-.cp-doc .bline b{font-family:var(--f-mono);font-weight:500;color:var(--brass);font-size:10.5px}
-.cp-doc .bline small{display:block;font-size:10.5px;color:var(--steel);line-height:1.4;margin-top:2px}
-.cp-doc .bline i{font-style:normal;font-family:var(--f-mono);font-size:10.5px;text-align:right;white-space:nowrap;color:var(--paper)}
+.cp-wide .bline{display:grid;grid-template-columns:30px minmax(0,1fr) auto;gap:4px 10px;padding:7px 0;border-top:1px solid rgba(196,210,232,.07);font-size:12px;color:#c9d0da}
+.cp-wide .bline b{font-family:var(--f-mono);font-weight:500;color:var(--brass);font-size:10.5px}
+.cp-wide .bline small{display:block;font-size:10.5px;color:var(--steel);line-height:1.4;margin-top:2px}
+.cp-wide .bline i{font-style:normal;font-family:var(--f-mono);font-size:10.5px;text-align:right;white-space:nowrap;color:var(--paper)}
 .cp-more{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 28px;margin-top:18px}
 .cp-more .cp-fold[open]{grid-column:1/-1}
 .cp-fast{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:12px}
@@ -328,6 +326,25 @@ html.cp-docopen{overflow:hidden}
   .cp-bomsum b{font-size:12.5px}.cp-bomsum span{font-size:7.5px;letter-spacing:.1em}
   .cp-docbody p.body{font-size:11.5px}
 }
+
+.panel.cp-wide{left:var(--gut);right:var(--gut-r);top:calc(76px + env(safe-area-inset-top,0px));bottom:calc(84px + env(safe-area-inset-bottom,0px));max-width:1180px;margin:0 auto;max-height:none;overflow-y:auto;
+  background:rgba(6,8,12,.88);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--hair);border-radius:2px;padding:18px 22px;text-shadow:none}
+.panel.cp-wide h2{font-size:clamp(1.15rem,1.9vw,1.6rem)}
+.panel.cp-wide p.body{max-width:42rem}
+.cp-wide .cp-fold{max-width:34rem}
+.cp-wide .cp-more .cp-fold,.cp-wide .cp-bomg .fold{max-width:none}
+.cp-wide .cp-sheet svg{height:calc(100vh - 300px)}
+#charpy-fracture .cp-macros{max-width:23rem}
+@media (max-width:720px){
+  .panel.cp-wide{left:var(--gut);right:var(--gut-r);top:calc(60px + env(safe-area-inset-top,0px));bottom:calc(54px + env(safe-area-inset-bottom,0px));max-width:none;padding:12px 12px}
+  .cp-wide .cp-fold{max-width:none}
+  #charpy-fracture .cp-macros{max-width:none}
+  .cp-stepper .btn{padding:0 10px}
+}
+
+.cp-howtags{position:fixed;inset:0;z-index:2;pointer-events:none;transition:opacity .2s}
+.cp-howtag{position:absolute;transform:translate(-50%,-50%);font-family:var(--f-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--brass);white-space:nowrap;text-shadow:0 1px 3px #000,0 0 10px #000}
+@media (max-width:720px){.cp-howtag{font-size:8px}}
 </style>
 
 <style>
@@ -485,61 +502,6 @@ html.cp-docopen{overflow:hidden}
     </div>
   </section>
 </main>
-<div class="cp-doc" id="cp-doc" hidden role="dialog" aria-label="Charpy tester reference">
-  <div class="cp-dochead">
-    <div class="cp-doctabs" id="cp-doctabs" role="tablist">
-      <button type="button" role="tab" data-t="why" aria-selected="true">Why it matters</button>
-      <button type="button" role="tab" data-t="drawings" aria-selected="false">Drawings</button>
-      <button type="button" role="tab" data-t="bom" aria-selected="false">Bill of materials</button>
-    </div>
-    <button class="btn" type="button" id="cp-docclose">Close</button>
-  </div>
-  <div class="cp-docbody">
-    <div class="cp-pane cp-split" data-t="why">
-      <div>
-        <h2>Strong is not the same as tough</h2>
-        <p class="body">A tensile test is slow and uses a smooth bar. Charpy is fast, notched and done at a chosen temperature: three conditions that push a metal toward brittle failure. It shows whether a material can absorb a sudden blow at a flaw, and steel grades are bought on the number.</p>
-        <details class="cp-fold"><summary>The ductile-to-brittle transition</summary>
-          <p class="body">Body-centred cubic steels change character over a narrow band of temperature. Above it they tear and absorb a lot of energy; below it they cleave like glass. Face-centred cubic aluminium has no such transition. Grey iron is brittle at every temperature, because its graphite flakes behave like ready-made cracks.</p></details>
-        <details class="cp-fold"><summary>Where the number is used</summary>
-          <p class="body">Structural steel grades carry their Charpy requirement in the name. Under EN 10025, <b>S355JR</b>, <b>J0</b> and <b>J2</b> each guarantee 27 J on a full-size specimen at +20 °C, 0 °C and −20 °C respectively. Weld procedures, pipelines and pressure equipment are qualified the same way, at the lowest temperature the part will see.</p></details>
-        <details class="cp-fold"><summary>Failures that made the test <span>3</span></summary>
-          <p class="body"><b>Liberty ships, 1943.</b> Hundreds of the all-welded wartime cargo ships cracked in cold seas, and a few broke clean in two. The <i>Schenectady</i> split at her fitting-out pier. The steel was strong enough; it was below its transition temperature.</p>
-          <p class="body"><b>RMS Titanic.</b> Charpy tests on recovered hull plate in the 1990s put its transition temperature well above the −2 °C water the ship sank in. At that temperature the plate behaved as a brittle material.</p>
-          <p class="body"><b>Design today.</b> The fix was not stronger steel but tougher steel: fine grain, low sulphur and phosphorus, controlled welding. Every one of those is checked with a pendulum like this one.</p></details>
-      </div>
-      <div class="cp-chart"><svg id="cp-dbtt" viewBox="0 0 560 330" role="img" aria-label="Energy versus temperature for the three materials"></svg>
-        <p class="note">Representative curves for 10 × 5 mm specimens; real values vary with the heat and rolling direction. Dots are the tests you run.</p></div>
-    </div>
-    <div class="cp-pane" data-t="drawings" hidden>
-      <div class="cp-tabs" id="cp-tabs" role="tablist" aria-label="Drawing sheets">
-        <button type="button" role="tab" aria-selected="true" data-s="0">01 · General arrangement</button>
-        <button type="button" role="tab" aria-selected="false" data-s="1">02 · Specimen</button>
-        <button type="button" role="tab" aria-selected="false" data-s="2">03 · Pendulum</button>
-        <button type="button" role="tab" aria-selected="false" data-s="3">04 · Striker and anvils</button>
-      </div>
-      <button class="cp-sheet" id="cp-sheet" type="button" aria-label="Open the drawing full size"></button>
-      <p class="note">Third-angle projection, millimetres. Tap the sheet to open it full size.</p>
-    </div>
-    <div class="cp-pane" data-t="bom" hidden>
-      <p class="body">Masses come from the geometry; costs are rough one-off shop estimates before labour. Open a group to see its parts.</p>
-      <div class="cp-bomsum" id="cp-bomsum"></div>
-      <div class="cp-bomg" id="cp-bomg"></div>
-      <div class="cp-more">
-        <details class="cp-fold"><summary>Fastener schedule <span id="cp-fcnt"></span></summary>
-          <p class="body">Counted from the model. Torques are for 12.9 screws, lightly oiled; use threadlocker where the build step says so.</p>
-          <table class="cp-fast" id="cp-fast"></table></details>
-        <details class="cp-fold"><summary>Specifications</summary><dl class="specs" id="cp-specsdl"></dl></details>
-        <details class="cp-fold"><summary>Build and calibration notes <span>5</span></summary>
-          <p class="body">1. Level the base to 0.1 mm/m before anything else. Bolt it to the bench through the four corner holes.</p>
-          <p class="body">2. Shim the pillow blocks until the shaft is level and square to the anvil faces. The striker edge must meet the specimen within ±0.5 mm of the span centre.</p>
-          <p class="body">3. Weigh the pendulum and find its centre of mass on a knife edge. Add or remove trim plugs until m·g·d·1.866 reads 50.0 J.</p>
-          <p class="body">4. Do a free swing with no specimen and record the rise. That loss, about 0.1 J, is subtracted from every result. Then verify against certified reference specimens.</p>
-          <p class="body">5. The guard interlock cuts the release when the door is open. Never reach into the swing zone while the pendulum is latched.</p></details>
-      </div>
-    </div>
-  </div>
-</div>
 <div class="cp-viewer" id="cp-viewer" hidden><button class="btn cp-vclose" id="cp-vclose" type="button">Close</button><div class="cp-vscroll" id="cp-vscroll"></div></div>
 
 
@@ -3834,11 +3796,20 @@ const CHARPY_SECS = `
           <div><span>Lat. exp.</span><b id="cp-le">—</b></div>
         </div>
         <p class="cp-verdict" id="cp-verdict">The hammer leaves the latch with 49.95 J. Watch how much of it each bar takes.</p>
-        <details class="cp-fold"><summary>Fracture faces and recent runs</summary>
-          <div class="cp-macros" id="cp-macros"></div>
-          <div class="cp-runs" id="cp-runs"></div>
-        </details>
+        <details class="cp-fold"><summary>Recent runs</summary><div class="cp-runs" id="cp-runs"></div></details>
       </div>
+    </div>
+  </section>
+  <section id="charpy-fracture" class="sec" data-orbit="1" data-proj="charpy">
+    <div class="panel cp">
+      <p class="eyebrow">Charpy tester · reading the break</p>
+      <h2>The broken halves tell the rest</h2>
+      <p class="body">The tray holds the two halves of your latest test of each material. Upper-shelf steel bends hard at the break and spreads sideways on the struck face; cold steel and grey iron come out straight.</p>
+      <div class="cp-macros" id="cp-macros"></div>
+      <details class="cp-fold"><summary>What to look for <span>3</span></summary>
+        <p class="body"><b>Steel at room temperature</b> shows a dull, fibrous rim of shear lips around a bright crystalline centre. Run it colder and the bright cleavage zone takes over the whole face.</p>
+        <p class="body"><b>Aluminium</b> tears with a uniform fibrous grey: low energy, but ductile, and the same at every temperature.</p>
+        <p class="body"><b>Grey iron</b> breaks flat and granular, with no lips and no bending. Its graphite flakes already act as cracks.</p></details>
     </div>
   </section>
   <section id="charpy-build" class="sec" data-orbit="1" data-proj="charpy">
@@ -3852,22 +3823,70 @@ const CHARPY_SECS = `
           <p class="cp-tool" id="cp-btool"></p>
         </details>
         <div class="cp-row cp-stepper">
-          <button class="btn" id="cp-bprev" type="button">← Back</button>
+          <button class="btn" id="cp-bprev" type="button" aria-label="Previous step">Back</button>
+          <button class="btn" id="cp-bplay" type="button">Pause</button>
           <div class="cp-dots" id="cp-bdots"></div>
-          <button class="btn solid" id="cp-bnext" type="button">Next step →</button>
+          <button class="btn solid" id="cp-bnext" type="button" aria-label="Next step">Next</button>
         </div>
       </div>
     </div>
   </section>
-  <section id="charpy-docs" class="sec" data-orbit="1" data-proj="charpy">
-    <div class="panel right cp">
-      <p class="eyebrow">Charpy tester · reference</p>
-      <h2>Drawings, parts and the why</h2>
-      <p class="body">Four dimensioned sheets, a costed bill of materials with every fastener counted from the model, and why a notched bar on a pendulum decides which steel gets used.</p>
-      <div class="cp-docbtns">
-        <button class="btn" type="button" data-cpdoc="why">Why it matters</button>
-        <button class="btn" type="button" data-cpdoc="drawings">Drawings</button>
-        <button class="btn" type="button" data-cpdoc="bom">Bill of materials</button>
+  <section id="charpy-why" class="sec" data-orbit="1" data-proj="charpy">
+    <div class="panel cp cp-wide">
+      <div class="cp-split">
+        <div>
+          <p class="eyebrow">Charpy tester · the materials</p>
+          <h2>Strong is not the same as tough</h2>
+          <p class="body">Charpy is fast, notched and done at a chosen temperature: three conditions that push a metal toward brittle failure. The curve shows how each of the three materials responds.</p>
+          <details class="cp-fold"><summary>A36 steel · BCC</summary>
+            <p class="body">Body-centred cubic steel changes character over a narrow band of temperature. Above it, about 40 J here, it tears; below it, about 2 J, it cleaves like glass. The middle of that band is its transition temperature.</p></details>
+          <details class="cp-fold"><summary>6061-T6 aluminium · FCC</summary>
+            <p class="body">Face-centred cubic metals have no transition. Aluminium absorbs only about 8 J, but it always fails by ductile tearing, from −40 °C to +60 °C.</p></details>
+          <details class="cp-fold"><summary>Grey cast iron · flake graphite</summary>
+            <p class="body">The graphite flakes in grey iron behave like ready-made cracks, so it is brittle at every temperature and absorbs under 2 J.</p></details>
+          <details class="cp-fold"><summary>Where the number is used</summary>
+            <p class="body">Under EN 10025, <b>S355JR</b>, <b>J0</b> and <b>J2</b> each guarantee 27 J on a full-size specimen at +20 °C, 0 °C and −20 °C. Welds, pipelines and pressure equipment are qualified the same way, at the lowest temperature the part will see.</p></details>
+          <details class="cp-fold"><summary>Failures that made the test <span>3</span></summary>
+            <p class="body"><b>Liberty ships, 1943.</b> Hundreds of all-welded wartime cargo ships cracked in cold seas, and a few broke clean in two. The steel was strong enough; it was below its transition temperature.</p>
+            <p class="body"><b>RMS Titanic.</b> Charpy tests on recovered hull plate put its transition temperature well above the −2 °C water the ship sank in.</p>
+            <p class="body"><b>Design today.</b> The fix was tougher steel, not stronger: fine grain, low sulphur and phosphorus, controlled welding, all checked with a pendulum like this one.</p></details>
+        </div>
+        <div class="cp-chart"><svg id="cp-dbtt" viewBox="0 0 560 330" role="img" aria-label="Energy versus temperature for the three materials"></svg>
+          <p class="note">Representative curves for 10 × 5 mm specimens. Dots are the tests you run.</p></div>
+      </div>
+    </div>
+  </section>
+  <section id="charpy-drawings" class="sec" data-orbit="1" data-proj="charpy">
+    <div class="panel cp cp-wide">
+      <p class="eyebrow">Charpy tester · technical drawings</p>
+      <div class="cp-tabs" id="cp-tabs" role="tablist" aria-label="Drawing sheets">
+        <button type="button" role="tab" aria-selected="true" data-s="0">01 · General arrangement</button>
+        <button type="button" role="tab" aria-selected="false" data-s="1">02 · Specimen</button>
+        <button type="button" role="tab" aria-selected="false" data-s="2">03 · Pendulum</button>
+        <button type="button" role="tab" aria-selected="false" data-s="3">04 · Striker and anvils</button>
+      </div>
+      <button class="cp-sheet" id="cp-sheet" type="button" aria-label="Open the drawing full size"></button>
+      <p class="note">Third-angle projection, millimetres. Tap the sheet to open it full size.</p>
+    </div>
+  </section>
+  <section id="charpy-bom" class="sec" data-orbit="1" data-proj="charpy">
+    <div class="panel cp cp-wide">
+      <p class="eyebrow">Charpy tester · bill of materials</p>
+      <h2>What it takes to build</h2>
+      <p class="body">Masses come from the geometry; costs are rough one-off shop estimates before labour. Open a group to see its parts.</p>
+      <div class="cp-bomsum" id="cp-bomsum"></div>
+      <div class="cp-bomg" id="cp-bomg"></div>
+      <div class="cp-more">
+        <details class="cp-fold"><summary>Fastener schedule <span id="cp-fcnt"></span></summary>
+          <p class="body">Counted from the model. Torques are for 12.9 screws, lightly oiled; use threadlocker where the build step says so.</p>
+          <table class="cp-fast" id="cp-fast"></table></details>
+        <details class="cp-fold"><summary>Specifications</summary><dl class="specs" id="cp-specsdl"></dl></details>
+        <details class="cp-fold"><summary>Build and calibration notes <span>5</span></summary>
+          <p class="body">1. Level the base to 0.1 mm/m before anything else. Bolt it to the bench through the four corner holes.</p>
+          <p class="body">2. Shim the pillow blocks until the shaft is level and square to the anvil faces. The striker edge must meet the specimen within ±0.5 mm of the span centre.</p>
+          <p class="body">3. Weigh the pendulum and find its centre of mass on a knife edge. Add or remove trim plugs until m·g·d·1.866 reads 50.0 J.</p>
+          <p class="body">4. Do a free swing with no specimen and record the rise. That loss, about 0.1 J, is subtracted from every result. Then verify against certified reference specimens.</p>
+          <p class="body">5. The guard interlock cuts the release when the door is open. Never reach into the swing zone while the pendulum is latched.</p></details>
       </div>
     </div>
   </section>`;
@@ -4615,7 +4634,7 @@ function result(beta) {
   else v = `<b>Brittle.</b> The graphite flakes act as built-in cracks, so it snaps with almost no energy and no bending.`;
   $('#cp-verdict').innerHTML = v + ` <span style="color:var(--steel)">${(KV / PH.E0 * 100).toFixed(0)}% of the hammer's energy.</span>`;
   oled.draw(M.short + '  ' + S.T + 'C', KV.toFixed(2) + ' J', 'beta ' + (beta / DEG).toFixed(1) + ' deg');
-  macroState[S.mat] = { T: S.T, E: KV, D: deformParams(S.mat, KV) }; drawMacros(); drawRuns(); drawDBTT();
+  setStandPair(S.mat, S.T, KV); drawMacros(); drawRuns(); drawDBTT();
 }
 
 
@@ -5043,18 +5062,53 @@ const SPECS = [
 ];
 $('#cp-specsdl').innerHTML = SPECS.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('');
 
-/* ---------- fracture faces, bench UI ---------- */
+/* ---------- display stand: the latest broken pair of each material, laid out to read ---------- */
+const stand = new THREE.Group(); stand.position.set(330, -28, 110); machine.add(stand);
+{ const b = new THREE.Mesh(box(230, 14, 110), new THREE.MeshLambertMaterial({ color: 0x1b1f26 })); b.position.y = 7; b.castShadow = b.receiveShadow = true; stand.add(b);
+  const felt = new THREE.Mesh(box(222, 1, 102), new THREE.MeshLambertMaterial({ color: 0x0b0e13 })); felt.position.y = 14.5; felt.receiveShadow = true; stand.add(felt); }
+const standPairs = {};
+['steel', 'alu', 'iron'].forEach((m, i) => {
+  const g = new THREE.Group(); g.position.set(-60 + i * 60, 15 + G.specB / 2, 6); g.rotation.y = Math.PI / 2 - .5; stand.add(g);
+  const tagC = document.createElement('canvas'); tagC.width = 512; tagC.height = 120; const tx = tagC.getContext('2d');
+  const tt = new THREE.CanvasTexture(tagC); tt.encoding = THREE.sRGBEncoding; tt.anisotropy = 4;
+  const tag = new THREE.Mesh(new THREE.PlaneGeometry(56, 13), new THREE.MeshBasicMaterial({ map: tt, toneMapped: false }));
+  tag.rotation.x = -Math.PI / 2; tag.position.set(-66 + i * 66, 15.6, 44); stand.add(tag);
+  standPairs[m] = { g, tag: { tx, tt, mesh: tag, i }, halves: [] };
+});
+function drawStandTag(m, st) {
+  const { tx, tt } = standPairs[m].tag, D = st.D;
+  tx.fillStyle = '#0d1118'; tx.fillRect(0, 0, 512, 120); tx.fillStyle = MATS[m].css; tx.fillRect(0, 0, 10, 120);
+  tx.fillStyle = '#e4e9f0'; tx.font = '600 40px Archivo, Arial'; tx.textBaseline = 'middle'; tx.fillText(MATS[m].short.toUpperCase() + '  ' + st.T + ' °C', 30, 38);
+  tx.fillStyle = '#9fb3c8'; tx.font = '500 27px JetBrains Mono, monospace';
+  tx.fillText(`${D.E.toFixed(1)} J · ${Math.round(D.bend / DEG)}° · LE ${D.le.toFixed(2)}`, 30, 88); tt.needsUpdate = true;
+}
+function setStandPair(m, T, E) {
+  const P2 = standPairs[m], D = deformParams(m, E);
+  for (const h of P2.halves) { h.geometry.dispose(); P2.g.remove(h); }
+  P2.halves = [-1, 1].map(sx => {
+    const h = new THREE.Mesh(halfGeo(sx, D), halfMaterials(sx, m, T, D, sx > 0)); applyDeform(h.geometry, 1);
+    h.castShadow = true; h.receiveShadow = true;
+    // broken ends 9 mm apart; each half sits on its body, so the bent end lifts toward the viewer
+    h.position.set(sx * (HL / 2 + 4.5), 0, 0); h.rotation.y = sx * D.bend * .5; P2.g.add(h); return h;
+  });
+  macroState[m] = { T, E, D }; drawStandTag(m, macroState[m]);
+}
 const macroState = {};
-['steel', 'alu', 'iron'].forEach(m => { const E = MATS[m].E(20); macroState[m] = { T: 20, E, D: deformParams(m, E) }; });
+['steel', 'alu', 'iron'].forEach(m => setStandPair(m, 20, MATS[m].E(20)));
+if (document.fonts) document.fonts.ready.then(() => ['steel', 'alu', 'iron'].forEach(m => drawStandTag(m, macroState[m])));
 function drawMacros() {
   const el = $('#cp-macros'); if (!el) return;
   if (!el.children.length) el.innerHTML = ['steel', 'alu', 'iron'].map(m => `<figure><canvas width="256" height="160" data-m="${m}"></canvas><figcaption>${MATS[m].short}<b></b></figcaption></figure>`).join('');
   for (const cv of el.querySelectorAll('canvas')) {
     const m = cv.dataset.m, st = macroState[m], D = st.D;
     cv.getContext('2d').drawImage(fractureTexture(m, D.sh, false).image, 0, 0, 256, 160);
-    cv.nextElementSibling.querySelector('b').innerHTML = `${st.T} °C · ${D.E.toFixed(1)} J<br>${Math.round(D.bend / DEG)}° bend · LE ${D.le.toFixed(2)}`;
+    cv.nextElementSibling.querySelector('b').innerHTML = `${st.T} °C · ${D.E.toFixed(1)} J<br>${Math.round(D.sh * 100)}% shear · ${Math.round(D.bend / DEG)}° bend<br>LE ${D.le.toFixed(2)} mm`;
   }
 }
+function refreshStand(m, shear, T) { setStandPair(m, T, S.last ? S.last.KV : MATS[m].E(T)); drawMacros(); }
+
+
+/* ---------- bench UI ---------- */
 function setStatus(t) { const e = $('#cp-status'); if (e) e.textContent = t; }
 function uiBusy(b) { const g = $('#cp-go'); if (g) g.disabled = b; document.querySelectorAll('#cp-seg button').forEach(x => x.disabled = b); const t = $('#cp-temp'); if (t) t.disabled = b; }
 document.querySelectorAll('#cp-seg button').forEach(b => b.addEventListener('click', () => {
@@ -5065,29 +5119,32 @@ document.querySelectorAll('#cp-seg button').forEach(b => b.addEventListener('cli
 $('#cp-temp').addEventListener('input', e => { S.T = +e.target.value; if (S.demo) S.demo.T = S.T; $('#cp-tempo').textContent = S.T + ' °C'; if (S.state === 'ready') loadSpecimen(); });
 $('#cp-slow').addEventListener('change', e => S.slow = e.target.checked);
 $('#cp-go').addEventListener('click', () => { if (S.demo) return; release(); });
-
-/* ---------- reference document overlay: why it matters, drawings, BOM ---------- */
-const docEl = $('#cp-doc');
-function openDoc(tab) {
-  docEl.hidden = false; document.documentElement.classList.add('cp-docopen');
-  document.querySelectorAll('#cp-doctabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.t === tab));
-  document.querySelectorAll('.cp-pane').forEach(p => p.hidden = p.dataset.t !== tab);
-  if (tab === 'why') drawDBTT();
-}
-function closeDoc() { docEl.hidden = true; document.documentElement.classList.remove('cp-docopen'); }
-document.addEventListener('click', e => { const b = e.target.closest('[data-cpdoc]'); if (b) openDoc(b.dataset.cpdoc); });
-document.querySelectorAll('#cp-doctabs button').forEach(b => b.addEventListener('click', () => openDoc(b.dataset.t)));
-$('#cp-docclose').addEventListener('click', closeDoc);
-addEventListener('keydown', e => { if (e.key === 'Escape' && !docEl.hidden && $('#cp-viewer').hidden) closeDoc(); });
 document.querySelectorAll('#cp-tabs button').forEach(b => b.addEventListener('click', () => {
   document.querySelectorAll('#cp-tabs button').forEach(x => x.setAttribute('aria-selected', x === b)); showSheet(+b.dataset.s); }));
+
+/* ---------- build steps play as an animation; any control pauses it ---------- */
+S.bplay = true; S.bhold = 0;
+const playBtn = $('#cp-bplay');
+function setPlay(on) { S.bplay = on; S.bhold = 0; playBtn.textContent = on ? 'Pause' : 'Play'; playBtn.setAttribute('aria-pressed', on); }
+playBtn.addEventListener('click', () => { if (!S.bplay && S.bstep >= BSTEPS.length - 1) setStep(1); setPlay(!S.bplay); });
+['#cp-bprev', '#cp-bnext'].forEach(id => $(id).addEventListener('click', () => setPlay(false)));
+$('#cp-bdots').addEventListener('click', () => setPlay(false));
+function autoplay(dt, on) {
+  if (!on || !S.bplay) return;
+  if (S.bfly < 1) return;
+  S.bhold += dt;
+  const last = S.bstep >= BSTEPS.length - 1;
+  if (S.bhold > (last ? 4.5 : 3.2)) { S.bhold = 0; setStep(last ? 1 : S.bstep + 1); }
+}
 
 /* ---------- the model as the Lab sees it ---------- */
 const root = new THREE.Group();          // the Lab's pivot
 machine.rotation.y = -Math.PI / 2;       // operator side faces the camera
 root.add(machine);
 const toWorldDir = d => [-d[2], d[1], d[0]];     // machine axes → model axes (after the turn above)
-loadSpecimen(); drawMacros(); buildSchedule();
+loadSpecimen(); drawMacros(); buildSchedule(); drawDBTT();
+stand.visible = false;
+const standMeshes = []; stand.traverse(o => { if (o.isMesh) standMeshes.push(o); });
 let curE = 0;
 function explode(e) {
   curE = e;
@@ -5103,11 +5160,12 @@ function stopId() {
   if (typeof curProj === 'undefined' || curProj !== 'charpy' || !sections || !sections.length) return null;
   const s = sections[Math.max(0, Math.min(sections.length - 1, Math.round(sCur)))]; return s ? s.id : null;
 }
-let buildOn = 0, guardShown = true;
+const DEMO_OK = new Set(['charpy', 'charpy-how', 'charpy-why', 'charpy-drawings', 'charpy-bom', 'charpy-specs']);
+let buildOn = 0, standOn = 0, lastNarrow = null;
 function tick(dt, front) {
   dt = Math.min(dt, 1 / 20);
-  const sid = stopId(), onTest = sid === 'charpy-test', onBuild = sid === 'charpy-build';
-  demoTick(dt, !front || sid === 'charpy' || sid === 'charpy-how' || sid === 'charpy-docs');
+  const sid = stopId(), onTest = sid === 'charpy-test', onBuild = sid === 'charpy-build', onFrac = sid === 'charpy-fracture';
+  demoTick(dt, !front || DEMO_OK.has(sid));
   // slow motion at the strike: a little for the demo, a lot on the test stop
   let ts = 1;
   if (S.state === 'swing' && S.peak === null) {
@@ -5129,15 +5187,18 @@ function tick(dt, front) {
   pointer.rotation.x = -S.pointer;
   pawl.rotation.x = lerp(pawl.rotation.x, S.pawl ? -.5 : 0, Math.min(1, dt * 14));
   brakeLever.rotation.x = lerp(brakeLever.rotation.x, S.state === 'brake' ? .25 : 0, Math.min(1, dt * 6));
-  applySteps(dt, onBuild);
+  applySteps(dt, onBuild); autoplay(dt, onBuild); updateHow(dt, sid === 'charpy-how' && curE < .05);
   const ghost = S.wi > .3;
   if (ghost !== S.ghosted) { S.ghosted = ghost;
     for (const m of PARTS) { const a = m.userData.asm; if (a === 'anvil' || a === 'guard') continue;
       if (ghost) { m.userData.cpMat = m.material; const g = m.material.clone(); g.transparent = true; g.opacity = a === 'striker' ? .35 : .1; g.depthWrite = false; m.material = g; }
       else if (m.userData.cpMat) { m.material.dispose(); m.material = m.userData.cpMat; m.userData.cpMat = null; } } }
-  // the guard fades on the close-up stops and during the impact zoom; the Lab hides it while exploded
-  const gShow = !(S.wi > .3) && curE < .05 && !(onBuild && S.bstep < 8);
+  // the guard: off for the impact zoom, while exploded and until its build step
+  const gShow = !(S.wi > .3) && curE < .05 && !(onBuild && S.bstep < 8) && sid !== 'charpy-how' && !onFrac;
   for (const m of ASM.guard.parts) m.visible = gShow;
+  // the fracture tray only shows on its own stop
+  standOn = onFrac; stand.visible = onFrac && curE < .05;
+  const narrow = innerWidth / innerHeight < .85; if (narrow !== lastNarrow) { lastNarrow = narrow; for (const m in standPairs) standPairs[m].tag.mesh.visible = !narrow; }
   document.documentElement.classList.toggle('cp-running', onTest && !S.demo && (S.state === 'swing' || S.state === 'brake' || S.state === 'raising'));
 }
 function applySteps(dt, on) {
@@ -5158,24 +5219,65 @@ function applySteps(dt, on) {
 const _w = new V3();
 function worldOf(p) { return machine.localToWorld(_w.set(...p)).toArray(); }
 function scaleOf() { return machine.getWorldScale(new V3()).x; }
+const narrowNow = () => innerWidth / innerHeight < .85;
 const CKEYS = {};
 function charpyKeys(x) {
-  CKEYS.test = { model: 'charpy', focus: [x, 0, 0], dir: toWorldDir([0.9, 0.22, 0.38]), fit: 1.45, offF: 0.2, mex: 0,
+  CKEYS.test = { model: 'charpy', focus: [x, 0, 0], dir: toWorldDir([0.9, 0.22, 0.38]), fit: 1.55, offF: 0.2, mex: 0,
     post: v => { if (!(S.wi > .001)) return v; const k = scaleOf(), d = 400 * k, f = worldOf([0, 114, 14]);
       return { focus: v.focus.map((a, i) => lerp(a, f[i], S.wi)), dist: lerp(v.dist, d, S.wi), off: lerp(v.off, .14 * d, S.wi) }; } };
+  CKEYS.frac = { model: 'charpy', focus: [x, 0, 0], dir: toWorldDir([0.12, 0.8, 0.6]), fit: 1.2, offF: -0.2, mex: 0,
+    post: () => { const k = scaleOf(), nar = narrowNow(), d = (nar ? 300 : 330) * k; return { focus: worldOf([330, -10, 112]), dist: d, off: nar ? 0 : -.3 * d * .6 }; } };
   CKEYS.build = { model: 'charpy', focus: [x, 0, 0], dir: toWorldDir(BSTEPS[S.bstep].dir), fit: 1.3, offF: 0.2, mex: 0,
     post: v => { const st = BSTEPS[S.bstep], k = scaleOf(), d = st.dist * k * .9; return { focus: worldOf(st.tgt), dist: d, off: (st.off ?? .3) * d * .6 }; } };
-  CKEYS.docs = { model: 'charpy', focus: [x, 0, 0], dir: [0.5, 0.22, 1], fit: 1.35, offF: 0.18, mex: 0 };
-  return [CKEYS.test, CKEYS.build, CKEYS.docs];
+  CKEYS.why = { model: 'charpy', focus: [x, 0, 0], dir: [0.6, 0.22, 1], fit: 1.6, offF: 0.32, mex: 0 };
+  CKEYS.draw = { model: 'charpy', focus: [x, 0, 0], dir: [-0.5, 0.25, 1], fit: 1.7, offF: 0.3, mex: 0.3 };
+  CKEYS.bom = { model: 'charpy', focus: [x, 0, 0], dir: [0.3, 0.4, 1], fit: 1.7, offF: 0.3, mex: 0.6 };
+  return [CKEYS.test, CKEYS.frac, CKEYS.build, CKEYS.why, CKEYS.draw, CKEYS.bom];
 }
-// the camera direction follows the impact view and the build step
+// the camera direction follows the impact view, the fracture tray and the build step
 function steerKeys() {
   if (CKEYS.test) { const a = toWorldDir([0.9, 0.22, 0.38]), b = toWorldDir([0.55, 0.8, 0.25]), w = S.wi || 0; CKEYS.test.dir = a.map((v, i) => lerp(v, b[i], w)); }
+  if (CKEYS.frac) CKEYS.frac.dir = toWorldDir(narrowNow() ? [0.7, 0.7, 0.14] : [0.12, 0.8, 0.6]);
   if (CKEYS.build) { const want = toWorldDir(BSTEPS[S.bstep].dir); CKEYS.build.dir = CKEYS.build.dir.map((v, i) => lerp(v, want[i], .08)); }
 }
+
+/* ---------- energy diagram on the "how it works" stop ---------- */
+const howGroup = new THREE.Group(); machine.add(howGroup); howGroup.visible = false;
+const howMat = new THREE.LineDashedMaterial({ color: 0xd3a65c, dashSize: 10, gapSize: 7, transparent: true, opacity: 0, depthTest: false });
+const howMat2 = new THREE.LineBasicMaterial({ color: 0xe4e9f0, transparent: true, opacity: 0, depthTest: false });
+function hline(pts, mat) { const g = new THREE.BufferGeometry().setFromPoints(pts); const l = new THREE.Line(g, mat); l.computeLineDistances(); l.renderOrder = 9; l.frustumCulled = false; howGroup.add(l); return l; }
+const HX = 30, hpv = new V3(HX, G.pivotY, 0), cgR = PH.d * 1000;
+const onArc = (th, r = G.L) => new V3(HX, G.pivotY - r * Math.cos(th), r * Math.sin(th));
+hline(Array.from({ length: 121 }, (_, i) => onArc((-150 + 300 * i / 120) * DEG)), howMat);
+hline([hpv, onArc(-150 * DEG)], howMat2);
+const howRise = hline([hpv, onArc(66 * DEG)], howMat2);
+hline([new V3(HX, G.pivotY - cgR, -560), new V3(HX, G.pivotY - cgR, 560)], howMat2);
+hline([new V3(HX, G.pivotY - cgR * Math.cos(150 * DEG), -560), new V3(HX, G.pivotY - cgR * Math.cos(150 * DEG), 0)], howMat2);
+hline([new V3(HX, G.pivotY - cgR, -540), new V3(HX, G.pivotY - cgR * Math.cos(150 * DEG), -540)], howMat2);
+const howH1 = hline([new V3(HX, 0, 0), new V3(HX, 0, 560)], howMat2);
+const howBox = document.createElement('div'); howBox.className = 'cp-howtags'; document.body.appendChild(howBox);
+const mkHow = () => { const d = document.createElement('div'); d.className = 'cp-howtag'; howBox.appendChild(d); return d; };
+const HT = { h0: mkHow(), rel: mkHow(), cop: mkHow(), rise: mkHow() };
+HT.h0.textContent = 'h₀ = 636 mm · E₀ = 49.95 J'; HT.rel.textContent = 'Release 150°'; HT.cop.textContent = 'Centre of percussion R390';
+let howOp = 0; const _hp = new V3();
+function updateHow(dt, on) {
+  howOp = lerp(howOp, on ? 1 : 0, Math.min(1, dt * 4));
+  howGroup.visible = howOp > .01; howBox.style.opacity = howOp; howBox.style.display = howOp > .01 ? '' : 'none';
+  if (howOp < .01) return;
+  const b = S.last ? S.last.beta * DEG : betaFor(MATS.steel.E(20));
+  howRise.geometry.setFromPoints([hpv, onArc(b)]);
+  const yb = G.pivotY - cgR * Math.cos(b); howH1.geometry.setFromPoints([new V3(HX, yb, 0), new V3(HX, yb, 560)]);
+  howMat.opacity = .9 * howOp; howMat2.opacity = .6 * howOp;
+  HT.rise.textContent = `Rise β = ${(b / DEG).toFixed(1)}° → ${energyAt(b).toFixed(1)} J absorbed`;
+  const place = (el, p) => { machine.localToWorld(_hp.copy(p)); _hp.project(camera); el.style.left = ((_hp.x + 1) / 2 * innerWidth) + 'px'; el.style.top = ((1 - _hp.y) / 2 * innerHeight) + 'px'; };
+  place(HT.h0, new V3(HX, (G.pivotY - cgR * Math.cos(150 * DEG) + G.pivotY - cgR) / 2, -560));
+  place(HT.rel, onArc(-150 * DEG).add(new V3(0, 30, 0)));
+  place(HT.cop, onArc(0).add(new V3(0, -26, 0)));
+  place(HT.rise, onArc(b).add(new V3(0, 30, 40)));
+}
 const SPECS_ROWS = SPECS;
-window.__cp = { S, release, step: secs => { for (let i = 0; i < secs / .0004; i++) simStep(.0004); }, setStep: n => setStep(n) };
-return { ad: { id: 'charpy', ex: { pivot: root }, explode, tick: (dt, front) => { tick(dt, front); steerKeys(); }, exclude: ASM.guard.parts },
+window.__cp = { S, sid: () => stopId(), how: () => howOp, release, step: secs => { for (let i = 0; i < secs / .0004; i++) simStep(.0004); }, setStep: n => setStep(n) };
+return { ad: { id: 'charpy', ex: { pivot: root }, explode, tick: (dt, front) => { tick(dt, front); steerKeys(); }, exclude: [...ASM.guard.parts] },
   keys: charpyKeys, specs: SPECS_ROWS, setBlueprint: b => { blueprint = b; } };
 }
 
@@ -5624,7 +5726,7 @@ const JKEYS = [
   {model:'jansen', focus:[0,0,0],     dir:[0.55,0.02,1], dist:315, off:-46, tilt:0.35, explode:.3,trace:0,   dims:0, ground:.25},
 ];
 const ANATK = { helio:1.28, hydro:1.12, stirling:1.25, geneva:1.35, atom:1.3 };   // tall exploded stacks need more height
-const FITK = { cell:0.78, arm:0.85, hydro:0.82 }, MFITK = { cell:0.66 };   // phones: the long cell may run a little past the edges
+const FITK = { cell:0.78, arm:0.85, hydro:0.82, charpy:0.8 }, MFITK = { cell:0.66 };   // phones: the long cell may run a little past the edges
 function keysFor(id){
   let ks;
   if(id==='jansen') ks = JKEYS;
@@ -5636,6 +5738,7 @@ function keysFor(id){
     {model:id, focus:[M.x,0,0], dir:[-0.45,0.3,1],  fit:ANATK[id] || 0.98, offF:({ hydro:-0.24, arm:-0.2 }[id] || -0.11), mex:1},
     {model:id, focus:[M.x,0,0], dir:[0.95,0.14,0.5],fit:1.25, offF:0.17,  mex:0.18},
     {model:id, focus:[M.x,0,0], dir:[0.5,0.05,1],   fit:1.5,  offF:-0.26, mex:0.3} ]; }
+  if(id==='charpy'){ Object.assign(ks[1], { mex:0, dir:[-0.12,0.14,1], fit:1.6, offF:-0.2 }); }   // how it works: assembled, square to the swing, with the energy diagram
   if(id==='hydro'){ const k = ks.find(k=>k.dir && k.dir[0]===0.95); k.focus = [MODEL.hydro.x, -22, 0]; k.fit = 1.2 / (FITK.hydro || 1); }   // specs view: larger, with the plant kept in frame
   if(id==='helio'){ ks[0].focus = [MODEL.helio.x, 42, 0]; ks[0].fit = 1.85; }   // room above the tracker for the sun's day path
   const fk = FITK[id] || 1; for(const k of ks) if(k.fit && !((id==='arm' || id==='hydro') && k.mex>=1)) k.fit *= fk;

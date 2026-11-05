@@ -3861,12 +3861,13 @@ const GEN = (() => {
   <section id="gx-${id}-drawings" class="sec" data-orbit="1" data-proj="${id}">
     <div class="panel cp cp-wide">
       <p class="eyebrow">${escH(short)} · technical drawings</p>
-      <div class="cp-tabs" role="tablist" aria-label="Drawing sheets">
+      <div class="cp-tabs" id="gx-${id}-tabs" role="tablist" aria-label="Drawing sheets">
         <button type="button" role="tab" aria-selected="true" data-gxs="${id}" data-s="0">01 · General arrangement</button>
-        <button type="button" role="tab" aria-selected="false" data-gxs="${id}" data-s="1">02 · Exploded assembly</button>
+        <button type="button" role="tab" aria-selected="false" data-gxs="${id}" data-s="1">02 · Section and details</button>
+        <button type="button" role="tab" aria-selected="false" data-gxs="${id}" data-s="2">03 · Exploded assembly</button>
       </div>
       <button class="cp-sheet gx-sheet" id="gx-${id}-sheet" type="button" aria-label="Open the drawing full size"><span class="gx-wait">Drawing the sheet…</span></button>
-      <p class="note">Traced from the 3D model. Third-angle projection, millimetres, overall dimensions. Tap the sheet to open it full size.</p>
+      <p class="note">Drawn from the 3D model to ISO 128, 5457 and 7200: third-angle projection, true scale on A3, millimetres. Tap the sheet to open it full size.</p>
     </div>
   </section>
   <section id="gx-${id}-bom" class="sec" data-orbit="1" data-proj="${id}">
@@ -3951,131 +3952,580 @@ const GEN = (() => {
   function unoffset(m) { const u = m.userData; if (u.__gxOff) { if (u.__gxAt && m.position.equals(u.__gxAt)) m.position.sub(u.__gxOff); u.__gxOff = null; u.__gxAt = null; } }
   function restore(id) { const st = ST[id]; st.active = false; if (st.vis) for (const [m, v] of st.vis) { unoffset(m); m.visible = v; } }
   function attach(M) { if (M.id === 'charpy') return; const t = M.ad.tick; M.ad.tick = (dt, f) => { t(dt, f); after(M.id, dt); }; }
-  // ---------- bill of materials ----------
-  function bom(id) {
-    const S = src(id); if (!S) return; const st = ST[id]; st.bom = true;
+  // ---------- parts list: one numbering shared by the BOM slide and every drawing ----------
+  const CODE = { jansen: 'JAN', walker: 'WLK', helio: 'HEL', aero: 'AER', hydro: 'HYD', arm: 'ARM', cell: 'CEL', stirling: 'STR', geneva: 'GEN', atom: 'CAM' };
+  const GETC = [(P, k) => P.getX(k), (P, k) => P.getY(k), (P, k) => P.getZ(k)];
+  function cylOf(g) {                     // is this geometry a body of revolution about one of its own axes?
+    if (g.userData.__cyl !== undefined) return g.userData.__cyl;
+    if (!g.boundingBox) g.computeBoundingBox();
+    const b = g.boundingBox, s = b.getSize(new V3()).toArray(), c = b.getCenter(new V3()).toArray(), P = g.attributes.position; let res = null;
+    if (P && P.count > 8) for (let ax = 0; ax < 3 && !res; ax++) {
+      const i = (ax + 1) % 3, j = (ax + 2) % 3, d = Math.max(s[i], s[j]);
+      if (d < 1e-6 || Math.abs(s[i] - s[j]) > .04 * d) continue;
+      let mr = 0; const step = Math.max(1, Math.floor(P.count / 2500));
+      for (let k = 0; k < P.count; k += step) mr = Math.max(mr, Math.hypot(GETC[i](P, k) - c[i], GETC[j](P, k) - c[j]));
+      if (mr <= .53 * d) res = { ax, r: d / 2, len: s[ax], c };
+    }
+    g.userData.__cyl = res; return res;
+  }
+  function shapeName(cy, sz) {
+    if (!cy) return 'Bought-in part';
+    const d = sz[0] === sz[1] || cy.len < cy.r * 2 ? sz[0] : sz[1], L = cy.len < cy.r * 2 ? sz[2] : sz[0];
+    const t = L > 1.5 * d ? 'Pin / fastener' : L < .4 * d ? 'Washer / disc' : 'Bush / spacer';
+    return `${t} Ø${fmtMM(d)} × ${fmtMM(L)}`;
+  }
+  const isShown = (S, m) => { const st = ST[S.id]; return st && st.active && st.vis ? !!st.vis.get(m) && (!m.parent || shownIn(m.parent, S.pivot)) : shownIn(m, S.pivot); };
+  function items(id) {
+    const S = src(id); if (!S) return null;
     pose(S, 0);
-    let pieces = 0, printed = 0; const env = new THREE.Box3(), uniq = new Set();
-    const groups = S.cats.map(c => {
-      const rows = new Map();
-      for (const m of c.meshes) { if (!m.visible && st.vis && !st.vis.get(m)) continue;
-        const p = m.geometry.userData.part, name = p ? prettyN(p.name) : (c.sub ? c.name : 'Part'), mat = matOf(m);
-        env.union(relBox(m, S.pivot)); const sz = partSize(m, S.pivot, S.mm);
-        const k = name + '|' + mat; if (!rows.has(k)) rows.set(k, { name, mat, q: 0, sz }); rows.get(k).q++; }
-      const list = [...rows.values()];
-      if (c.sub) { list.forEach(r => r.q = c.qty); }
-      list.forEach(r => { pieces += r.q; uniq.add(r.name); if (PRINTED.test(r.mat)) printed += r.q; });
-      return { name: c.name, list, role: c.role };
+    const code = CODE[id] || id.slice(0, 3).toUpperCase(), meshItem = new Map(), meshGroup = new Map(), env = new THREE.Box3();
+    let n = 0, pieces = 0, printed = 0; const uniq = new Set();
+    const groups = S.cats.map((c, gi) => {
+      const rows = new Map(), anon = [];
+      for (const m of c.meshes) {
+        if (!isShown(S, m)) continue;
+        const p = m.geometry.userData.part, mat = matOf(m), sz = partSize(m, S.pivot, S.mm);
+        env.union(relBox(m, S.pivot));
+        if (c.sub || (p && p.name)) { const name = c.sub ? c.name : prettyN(p.name), k = name + '|' + mat; if (!rows.has(k)) rows.set(k, { name, mat, q: 0, sz, meshes: [] }); const r = rows.get(k); r.q++; r.meshes.push(m); }
+        else anon.push({ m, mat, sz });
+      }
+      const an = new Map();
+      for (const a of anon) { const name = shapeName(cylOf(a.m.geometry), a.sz), k = name + '|' + a.mat + '|' + a.sz.map(v => Math.round(v * 2)).join('x');
+        if (!an.has(k)) an.set(k, { name, mat: a.mat, q: 0, sz: a.sz, meshes: [] }); const r = an.get(k); r.q++; r.meshes.push(a.m); }
+      let extra = [...an.values()];
+      if (extra.length > 14) { const mats = [...new Set(extra.map(r => r.mat))]; extra = [{ name: `${c.name}: assorted parts`, mat: mats.length > 2 ? 'Various' : mats.join(', '), q: anon.length, sz: null, meshes: anon.map(a => a.m) }]; }
+      const list = [...rows.values(), ...extra.sort((a, b) => b.q - a.q)];
+      if (c.sub) list.forEach(r => r.q = c.qty);
+      const gpn = `${code}-${String(gi + 1).padStart(2, '0')}00`;
+      list.forEach((r, i) => { r.item = ++n; r.pn = `${code}-${String(gi + 1).padStart(2, '0')}${String(i + 1).padStart(2, '0')}`; r.group = gi;
+        pieces += r.q; uniq.add(r.name); if (PRINTED.test(r.mat)) printed += r.q; r.meshes.forEach(m => { meshItem.set(m, r); meshGroup.set(m, gi); }); });
+      return { name: c.name, gi, pn: gpn, list, role: c.role };
     }).filter(g => g.list.length);
     unpose(S);
-    const E = env.getSize(new V3()).multiplyScalar(S.mm);
-    document.getElementById(`gx-${id}-bs`).innerHTML = [['Assemblies', groups.length], ['Different parts', uniq.size], ['Pieces', pieces], ['Printed', printed], ['Envelope', `${fmtMM(E.x)} × ${fmtMM(E.y)} × ${fmtMM(E.z)}`]]
+    return { S, code, groups, rows: groups.flatMap(g => g.list), meshItem, meshGroup, env, pieces, printed, uniq };
+  }
+  // ---------- bill of materials ----------
+  function bom(id) {
+    const P = items(id); if (!P) return; const st = ST[id]; st.bom = true;
+    const E = P.env.getSize(new V3()).multiplyScalar(P.S.mm);
+    document.getElementById(`gx-${id}-bs`).innerHTML = [['Assemblies', P.groups.length], ['Different parts', P.uniq.size], ['Pieces', P.pieces], ['Printed', P.printed], ['Envelope', `${fmtMM(E.x)} × ${fmtMM(E.y)} × ${fmtMM(E.z)}`]]
       .map(([k, v]) => `<div><span>${k}</span><b>${v}</b></div>`).join('');
-    let n = 0;
-    document.getElementById(`gx-${id}-bg`).innerHTML = groups.map(g => `<details class="fold"><summary>${escH(g.name)} <span>${g.list.length}</span><em>${g.list.reduce((a, r) => a + r.q, 0)} pcs</em><em></em></summary>` +
-      g.list.map(r => `<div class="bline"><b>${String(++n).padStart(2, '0')}</b><div>${escH(r.name)}${r.q > 1 ? ' ×' + r.q : ''}<small>${escH(r.mat)}</small></div><i>${r.sz.map(fmtMM).join(' × ')}<small>mm</small></i></div>`).join('') + '</details>').join('');
+    document.getElementById(`gx-${id}-bg`).innerHTML = P.groups.map(g => `<details class="fold"><summary>${escH(g.name)} <span>${g.list.length}</span><em>${g.list.reduce((a, r) => a + r.q, 0)} pcs</em><em></em></summary>` +
+      g.list.map(r => `<div class="bline"><b>${String(r.item).padStart(2, '0')}</b><div>${escH(r.name)}${r.q > 1 ? ' ×' + r.q : ''}<small>${escH(r.pn)} · ${escH(r.mat)}</small></div><i>${r.sz ? r.sz.map(fmtMM).join(' × ') + '<small>mm</small>' : '—'}</i></div>`).join('') + '</details>').join('');
   }
-  // ---------- technical drawings, traced from the model ----------
-  let R2 = null; const edgeCache = new Map();
-  const FILL = new THREE.MeshBasicMaterial({ color: 0x0b2646, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 });
-  const LINE = new THREE.LineBasicMaterial({ color: 0xd6e8ff });
-  function capture(S, exploded) {
-    const id = S.id, M = S.M;
-    pose(S, exploded ? 1 : 0);
-    const sc = new THREE.Scene(), box = new THREE.Box3(), items = [];
-    const inv = new THREE.Matrix4().copy(S.pivot.matrixWorld).invert();
+
+  // =====================================================================================================
+  // Technical drawings. Each sheet follows the usual drawing standards:
+  //   ISO 5457 A3 frame, filing margin, grid zones and centring marks · ISO 7200 title block + revision table
+  //   ISO 128 line types (continuous wide outlines, dash-dot centre lines, hatched sections, unsectioned shafts/fasteners)
+  //   ISO 5456-2 third-angle arrangement · ISO 5455 scales · ISO 129-1 dimensioning (reference dims in brackets,
+  //   ordinate positions from datums) · ISO 5459 datum symbols · ISO 6433 item balloons · ISO 7573 parts list.
+  // Lines come from the model itself: an id/normal/depth pass, then silhouettes, creases and part boundaries.
+  // =====================================================================================================
+  const fmtD = v => Math.abs(v) >= 20 ? String(Math.round(v)) : String(Math.round(v * 10) / 10);
+  const PX = 3;                           // sheet units per paper millimetre (A3 = 1260 × 891)
+  const SW = 1260, SH = 891, FX0 = 60, FY0 = 30, FX1 = 1230, FY1 = 861;
+  const TB = { x: 690, y: 705, w: 540, h: 156 };
+  const ISSUE = '2026-11-05';
+  const RATIOS = [10, 5, 2, 1, 1 / 1.5, 1 / 2, 1 / 2.5, 1 / 3, 1 / 4, 1 / 5, 1 / 6, 1 / 8, 1 / 10, 1 / 15, 1 / 20, 1 / 25, 1 / 50];
+  const fmtR = r => r >= 1 ? `${+r.toFixed(2)}:1` : `1:${+(1 / r).toFixed(1)}`;
+  const INK = '#d6e8ff', THIN = '#8fb4e0', DIMC = '#ffd27a', CEN = '#9fc0ff', BG = '#0b2646';
+  const FONT = "Archivo, 'Arial Narrow', Arial, sans-serif";
+  const r1 = v => Math.round(v * 10) / 10;
+  // Detail views: the mechanism each project is about (parts by name, covers to lift off)
+  const DET = {
+    jansen: [{ label: 'Crank and drive gear', parts: ['drive'] }, { label: 'Foot', parts: ['foot', 'f'] }],
+    walker: [{ label: 'Drive crank and web', parts: ['drive_crank', 'web_165deg'], one: true }, { label: 'Foot triangle', parts: ['foot'], one: true }],
+    helio: [{ label: 'Elevation worm drive', parts: ['el_worm', 'el_wheel', 'el_drive_bracket'], hide: ['pod_cover_left', 'pod_cover_right', 'head_tray', 'sensor_window'] },
+      { label: 'Azimuth worm drive', parts: ['az_worm', 'az_wheel', 'az_drive_bracket'], hide: ['base_shell', 'turret_hub', 'raceway', 'light_pipe', 'button_cap'] }],
+    aero: [{ label: 'Upright and pivot', parts: ['stanchion_h120', 'stanchion_h200', 'stanchion_h280', 'foot_block', 'backing_plate'], one: true }, { label: 'Endplate and Gurney', parts: ['endplate_s', 'endplate_m', 'endplate_l', 'tip_cap'], one: true }],
+    hydro: [{ label: 'Pelton runner', parts: ['runner_half_b', 'spacer_a', 'spacer_b', 'magnet_rotor'], hide: ['cover', 'gasket_front'] },
+      { label: 'Sealed generator', parts: ['magnet_rotor', 'stator_plate', 'gasket_pod'], hide: ['pod', 'pcb_tray', 'cover'] }],
+    arm: [{ label: 'J2 cycloidal reducer', parts: ['cyc_output_j2', 'cyc_housing_belt_j2', 'cyc_cover_j2', 'cyc_disc_a_j2', 'cyc_disc_b_j2', 'cyc_eccentric_j2', 'cyc_pins_j2'] },
+      { label: 'Spherical wrist', parts: ['plan_ring_j4', 'plan_carrier_j4', 'plan_ring_j5', 'plan_carrier_j5', 'wrist_body', 'tool_flange', 'plan_ring_j6'] },
+      { label: 'Gripper', parts: ['grip_housing', 'grip_pinion', 'jaw_l', 'jaw_r', 'grip_rods', 'pad_l', 'pad_r'] }],
+    cell: [{ label: 'ST20 bushing press', parts: ['press_punch', 'bushing_fingers', 'under_support'] }, { label: 'ST40 screwdriving', parts: ['screw_nose'] }, { label: 'ST50 test contacts', parts: ['test_contacts'] }],
+    stirling: [{ label: 'Displacer and chamber', parts: ['displacer', 'displacer_hub', 'disp_rod', 'rod_clevis', 'chamber_ring', 'hot_plate', 'cold_plate'], sec: true },
+      { label: 'Crankshaft', parts: ['crank_webs', 'power_crank', 'crank_pin_d', 'crank_pin_p', 'shaft', 'bearings', 'conrod_disp', 'conrod_pow'], hide: ['flywheel_nuts'] }],
+    geneva: [{ label: 'Drive roller and slots', parts: ['drive_wheel_6', 'geneva_wheel_6', 'pin_6', 'rollers_6'], hide: ['turntable_6', 'table_marks_6', 'workpieces_6', 'station_post', 'collar'], view: 'top' },
+      { label: 'Wheel shafts and bearings', parts: ['shafts', 'bearings', 'collar'], sec: true }],
+    atom: [{ label: 'Cam stack', parts: ['cam_x', 'cam_y', 'face_cam', 'camshaft'] }, { label: 'Rocking followers', parts: ['x_arm_low', 'x_roller', 'x_arm_top', 'y_arm_low', 'y_roller', 'y_arm_top', 'x_rocker_shaft', 'y_rocker_shaft'] },
+      { label: 'Geneva paper drive', parts: ['drive_wheel', 'geneva_wheel', 'geneva_pin', 'geneva_rollers'], hide: ['table', 'paper', 'paper_ring', 'magnets'], view: 'top' }],
+  };
+  const pname = m => { const p = m.geometry.userData.part; return String((p && p.name) || m.userData.cat || '').toLowerCase(); };
+  const nameIn = (m, list) => { const n = pname(m); return !!n && list.includes(n); };
+
+  // ---------- the drawing frame: model space turned so the longest horizontal run reads across the sheet ----------
+  function frameOf(P) {
+    const S = P.S, sz = P.env.getSize(new V3());
+    const rot = new THREE.Matrix4(); if (sz.z > sz.x * 1.25) rot.makeRotationY(Math.PI / 2);
+    return { rot, inv: new THREE.Matrix4().copy(S.pivot.matrixWorld).invert() };
+  }
+  function collect(P, F, explode, skip) {
+    const S = P.S; pose(S, explode);
+    const inv = new THREE.Matrix4().copy(S.pivot.matrixWorld).invert(), list = [], box = new THREE.Box3();
     for (const m of S.meshes) {
-      if (!shownIn(m, S.pivot)) continue;
-      const mat = new THREE.Matrix4().multiplyMatrices(inv, m.matrixWorld);
-      const f = new THREE.Mesh(m.geometry, FILL); f.matrixAutoUpdate = false; f.matrix.copy(mat); sc.add(f);
-      let eg = edgeCache.get(m.geometry.uuid); if (!eg) { eg = new THREE.EdgesGeometry(m.geometry, 28); edgeCache.set(m.geometry.uuid, eg); }
-      const l = new THREE.LineSegments(eg, LINE); l.matrixAutoUpdate = false; l.matrix.copy(mat); sc.add(l);
+      if (!P.meshItem.has(m) || !isShown(S, m) || (skip && skip(m))) continue;
+      const mat = new THREE.Matrix4().multiplyMatrices(F.rot, inv).multiply(m.matrixWorld);
       if (!m.geometry.boundingBox) m.geometry.computeBoundingBox();
-      box.union(m.geometry.boundingBox.clone().applyMatrix4(mat)); items.push({ m, mat });
+      const b = m.geometry.boundingBox.clone().applyMatrix4(mat); box.union(b); list.push({ m, mat, b });
     }
-    // assembly centres for the balloons
-    const cats = S.cats.map((c, i) => { const b = new THREE.Box3(); let k = 0; for (const m of c.meshes) { if (!shownIn(m, S.pivot)) continue; const mt = new THREE.Matrix4().multiplyMatrices(inv, m.matrixWorld); b.union(m.geometry.boundingBox.clone().applyMatrix4(mt)); k++; }
-      return k ? { name: c.name, n: i + 1, c: b.getCenter(new V3()), q: c.qty || c.meshes.length } : null; }).filter(Boolean);
-    unpose(S);
-    return { sc, box, cats };
+    unpose(S); return { list, box };
   }
-  function render(cap, view, wpx, hpx) {
-    if (!R2) { R2 = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true }); R2.setPixelRatio(1); }
-    R2.setSize(wpx, hpx, false); R2.setClearColor(0x000000, 0);
-    const b = cap.box, c = b.getCenter(new V3()), sz = b.getSize(new V3()), R = sz.length();
-    const cam = new THREE.OrthographicCamera(-1, 1, 1, -1, -R * 4, R * 4);
-    const dirs = { front: [0, 0, 1], top: [0, 1, 0.0001], right: [1, 0, 0], iso: [1, .8, 1.2] };
-    const d = new V3(...dirs[view]).normalize(); cam.position.copy(c).addScaledVector(d, R * 2); cam.up.set(0, view === 'top' ? 0 : 1, view === 'top' ? -1 : 0); cam.lookAt(c);
-    cam.updateMatrixWorld(true);
-    // fit the box's projected corners to the image
-    const pts = []; for (const x of [b.min.x, b.max.x]) for (const y of [b.min.y, b.max.y]) for (const z of [b.min.z, b.max.z]) pts.push(new V3(x, y, z).applyMatrix4(cam.matrixWorldInverse));
-    const xs = pts.map(p => p.x), ys = pts.map(p => p.y), x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
-    const s = Math.min(wpx / (x1 - x0), hpx / (y1 - y0)), cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
-    cam.left = cx - wpx / 2 / s; cam.right = cx + wpx / 2 / s; cam.top = cy + hpx / 2 / s; cam.bottom = cy - hpx / 2 / s; cam.updateProjectionMatrix();
-    R2.render(cap.sc, cam);
-    const toPx = p => { const q = p.clone().applyMatrix4(cam.matrixWorldInverse); return [(q.x - cam.left) * s, (cam.top - q.y) * s]; };
-    return { url: R2.domElement.toDataURL('image/png'), s, toPx, w: (x1 - x0) * s, h: (y1 - y0) * s };
+  // axes of revolution, grouped into common centre lines
+  function axesOf(C, P) {
+    const S = P.S, R = C.box.getSize(new V3()).length(), tol = Math.max(R * .004, .6 / S.mm), out = [];
+    const _s = new V3(), _q = new THREE.Quaternion(), _t = new V3();
+    for (const it of C.list) {
+      const cy = cylOf(it.m.geometry); if (!cy) continue;
+      it.mat.decompose(_t, _q, _s); const sc = [_s.x, _s.y, _s.z].map(Math.abs);
+      const ax = new V3().setComponent(cy.ax, 1).applyQuaternion(_q).normalize();
+      const k = [0, 1, 2].find(i => Math.abs(ax.getComponent(i)) > .9995); if (k === undefined) continue;
+      const c = new V3(...cy.c).applyMatrix4(it.mat), r = cy.r * sc[(cy.ax + 1) % 3], len = cy.len * sc[cy.ax];
+      if (r * S.mm < .9) continue;
+      const hw = HWRE.test((S.cats[P.meshGroup.get(it.m)] || {}).name || '');
+      let a = out.find(a => a.k === k && [0, 1, 2].every(i => i === k || Math.abs(a.c.getComponent(i) - c.getComponent(i)) < tol));
+      if (!a) { a = { k, c: c.clone(), r: 0, lo: Infinity, hi: -Infinity, w: 0, meshes: new Set(), parts: [] }; out.push(a); }
+      a.r = Math.max(a.r, r); a.lo = Math.min(a.lo, c.getComponent(k) - len / 2); a.hi = Math.max(a.hi, c.getComponent(k) + len / 2);
+      a.w += r * Math.max(len, r) * (hw ? .25 : 1); a.meshes.add(it.m); a.parts.push({ m: it.m, r, len, c });
+    }
+    return out.sort((a, b) => b.w - a.w);
   }
-  const INK = '#d6e8ff', THIN = '#8fb4e0', DIMC = '#ffd27a';
-  function frameSVG(no, title, scale, info) {
-    const W = 1200, H = 800, o = [];
-    o.push(`<rect width="${W}" height="${H}" fill="#0b2646"/><rect x="12" y="12" width="${W - 24}" height="${H - 24}" fill="none" stroke="${INK}" stroke-width="1.6"/><rect x="20" y="20" width="${W - 40}" height="${H - 40}" fill="none" stroke="${THIN}" stroke-width=".6"/>`);
-    for (let i = 1; i < 8; i++) o.push(`<line x1="${20 + i * 145}" y1="12" x2="${20 + i * 145}" y2="20" stroke="${THIN}"/><line x1="${20 + i * 145}" y1="${H - 20}" x2="${20 + i * 145}" y2="${H - 12}" stroke="${THIN}"/>`);
-    const tx = W - 20 - 420, ty = H - 20 - 92;
-    o.push(`<rect x="${tx}" y="${ty}" width="420" height="92" fill="rgba(11,38,70,.95)" stroke="${INK}"/>`);
-    const cell = (x, y, w, h, k, v, big) => o.push(`<rect x="${tx + x}" y="${ty + y}" width="${w}" height="${h}" fill="none" stroke="${THIN}" stroke-width=".6"/><text x="${tx + x + 6}" y="${ty + y + 11}" fill="${THIN}" font-size="7.5" font-family="JetBrains Mono, monospace">${k}</text><text x="${tx + x + 6}" y="${ty + y + h - 7}" fill="${INK}" font-size="${big ? 12.5 : 10}" font-family="${big ? 'Archivo, Arial' : 'JetBrains Mono, monospace'}" font-weight="${big ? 600 : 400}">${escH(v)}</text>`);
-    cell(0, 0, 420, 38, 'TITLE', title, true); cell(0, 38, 140, 27, 'DRAWING NO', info.no); cell(140, 38, 140, 27, 'SCALE', scale); cell(280, 38, 140, 27, 'SHEET', `${no} OF 2`);
-    cell(0, 65, 210, 27, 'DRAWN', 'M.B. STILES'); cell(210, 65, 210, 27, 'UNITS · PROJECTION', 'mm · third angle');
-    return { o, W, H };
+
+  // ---------- line renderer ----------
+  let R2 = null;
+  const VS = `#include <common>
+#include <clipping_planes_pars_vertex>
+varying vec3 vN;
+void main(){
+#include <begin_vertex>
+#include <project_vertex>
+#include <clipping_planes_vertex>
+  vN = normalize(normalMatrix * normal); }`;
+  const FS_ID = `#include <clipping_planes_pars_fragment>
+uniform vec3 uId; varying vec3 vN;
+void main(){
+#include <clipping_planes_fragment>
+  gl_FragColor = vec4(uId, gl_FrontFacing ? 1.0 : 0.5); }`;
+  const FS_N = `#include <clipping_planes_pars_fragment>
+varying vec3 vN;
+void main(){
+#include <clipping_planes_fragment>
+  vec3 n = gl_FrontFacing ? normalize(vN) : vec3(0.0, 0.0, 1.0);
+  float d = gl_FragCoord.z * 255.0; gl_FragColor = vec4(n.xy * 0.5 + 0.5, floor(d) / 255.0, fract(d)); }`;
+  const FS_E = `uniform sampler2D tI, tN; uniform vec2 px; uniform float dth, hatch; uniform vec4 ink, thin; varying vec2 vUv;
+float idOf(vec4 c){ return dot(floor(c.rgb * 255.0 + 0.5), vec3(65536.0, 256.0, 1.0)); }
+bool cutOf(vec4 c){ return c.a > 0.25 && c.a < 0.75; }
+vec3 nOf(vec4 c){ vec2 q = c.xy * 2.0 - 1.0; return vec3(q, sqrt(max(0.0, 1.0 - dot(q, q)))); }
+float dOf(vec4 c){ return c.z + c.w / 255.0; }
+void main(){
+  vec4 c0 = texture2D(tI, vUv), n0 = texture2D(tN, vUv); float i0 = idOf(c0); bool k0 = hatch > 0.5 && cutOf(c0);
+  for (int k = 0; k < 4; k++) {
+    vec2 o = k == 0 ? vec2(px.x, 0.0) : k == 1 ? vec2(-px.x, 0.0) : k == 2 ? vec2(0.0, px.y) : vec2(0.0, -px.y);
+    vec4 c1 = texture2D(tI, vUv + o); float i1 = idOf(c1);
+    if (i1 != i0) { gl_FragColor = ink; return; }
+    if (i0 < 0.5) continue;
+    bool k1 = hatch > 0.5 && cutOf(c1);
+    if (k1 != k0) { gl_FragColor = ink; return; }
+    if (k0) continue;
+    vec4 n1 = texture2D(tN, vUv + o);
+    if (dot(nOf(n0), nOf(n1)) < 0.86 || abs(dOf(n0) - dOf(n1)) > dth) { gl_FragColor = ink; return; }
   }
-  function dimH(o, x0, x1, y, t) { o.push(`<path d="M${x0} ${y - 6}V${y + 6}M${x1} ${y - 6}V${y + 6}M${x0} ${y}H${x1}" stroke="${DIMC}" stroke-width=".7" fill="none"/><path d="M${x0} ${y}l7 -2.5v5zM${x1} ${y}l-7 -2.5v5z" fill="${DIMC}"/><text x="${(x0 + x1) / 2}" y="${y - 5}" fill="${DIMC}" font-size="10.5" font-family="JetBrains Mono, monospace" text-anchor="middle">${t}</text>`); }
-  function dimV(o, x, y0, y1, t) { o.push(`<path d="M${x - 6} ${y0}H${x + 6}M${x - 6} ${y1}H${x + 6}M${x} ${y0}V${y1}" stroke="${DIMC}" stroke-width=".7" fill="none"/><path d="M${x} ${y0}l-2.5 7h5zM${x} ${y1}l-2.5 -7h5z" fill="${DIMC}"/><text x="${x - 6}" y="${(y0 + y1) / 2}" fill="${DIMC}" font-size="10.5" font-family="JetBrains Mono, monospace" text-anchor="middle" transform="rotate(-90 ${x - 6} ${(y0 + y1) / 2})">${t}</text>`); }
-  const label = (o, x, y, t, sub) => { o.push(`<text x="${x}" y="${y}" fill="${INK}" font-size="10.5" font-family="Archivo, Arial" font-weight="600" letter-spacing="1.4" text-anchor="middle">${t}</text>`); if (sub) o.push(`<text x="${x}" y="${y + 13}" fill="${THIN}" font-size="8.5" font-family="JetBrains Mono, monospace" text-anchor="middle">${sub}</text>`); };
-  function sheetGA(S, title) {
-    const cap = capture(S, false), sz = cap.box.getSize(new V3()), mm = S.mm, X = sz.x, Y = sz.y, Z = sz.z;
-    // one scale for the three views: front at lower left, top above it, right side to its right
-    const s = Math.min(480 / X, 300 / Y, 210 / Z, 200 / Z);
-    const fw = X * s, fh = Y * s, tw = X * s, th = Z * s, rw = Z * s, rh = Y * s;
-    const fx = 70, fy = 760 - 110 - fh, tx = fx, ty = fy - 56 - th, rx = fx + fw + 70, ry = fy;
-    const F = frameSVG(1, `${title.toUpperCase()} · GENERAL ARRANGEMENT`, 'NTS', { no: `GX-${S.id.toUpperCase()}-01` }), o = F.o, k = 2;
-    const vf = render(cap, 'front', Math.round(fw * k), Math.round(fh * k)); o.push(`<image href="${vf.url}" x="${fx}" y="${fy}" width="${fw}" height="${fh}"/>`);
-    const vt = render(cap, 'top', Math.round(tw * k), Math.round(th * k)); o.push(`<image href="${vt.url}" x="${tx}" y="${ty}" width="${tw}" height="${th}"/>`);
-    const vr = render(cap, 'right', Math.round(rw * k), Math.round(rh * k)); o.push(`<image href="${vr.url}" x="${rx}" y="${ry}" width="${rw}" height="${rh}"/>`);
-    const iw = Math.min(330, 1180 - 40 - (rx + rw + 40)), ih = 250, ix = 1180 - 30 - iw, iy = 40;
-    if (iw > 160) { const vi = render(cap, 'iso', iw * k, ih * k); o.push(`<image href="${vi.url}" x="${ix}" y="${iy}" width="${iw}" height="${ih}"/>`); label(o, ix + iw / 2, iy + ih + 16, 'ISOMETRIC', 'not to scale'); }
-    dimH(o, fx, fx + fw, fy + fh + 26, fmtMM(X * mm)); dimV(o, fx - 26, fy, fy + fh, fmtMM(Y * mm)); dimH(o, rx, rx + rw, ry + rh + 26, fmtMM(Z * mm));
-    label(o, fx + fw / 2, fy + fh + 58, 'FRONT'); label(o, tx + tw / 2, ty - 12, 'TOP'); label(o, rx + rw / 2, ry + rh + 58, 'RIGHT SIDE');
-    o.push(`<path d="M${fx + fw / 2} ${ty + th + 6}V${fy - 6}M${fx + fw + 8} ${fy + fh / 2}H${rx - 8}" stroke="${THIN}" stroke-width=".5" stroke-dasharray="14 3 2 3" fill="none"/>`);
-    const parts = S.meshes.filter(m => shownIn(m, S.pivot)).length;
-    ['NOTES', `1. Overall envelope ${fmtMM(X * mm)} × ${fmtMM(Y * mm)} × ${fmtMM(Z * mm)} mm (W × H × D).`, `2. ${S.cats.length} assemblies, ${parts} modelled parts; see sheet 2 and the BOM.`, '3. Views traced from the 3D model with hidden lines removed.', '4. Detail dimensions from the part models; general tolerance ISO 2768-m.']
-      .forEach((t, i) => o.push(`<text x="${Math.max(rx + rw + 40, 780)}" y="${470 + i * 15}" fill="${i ? INK : DIMC}" font-size="9" font-family="JetBrains Mono, monospace">${escH(t)}</text>`));
-    return `<svg viewBox="0 0 ${F.W} ${F.H}" role="img" aria-label="General arrangement">${o.join('')}</svg>`;
+  if (k0 && i0 > 0.5) { float s = mod(i0, 2.0) < 0.5 ? 1.0 : -1.0, sp = 9.0 + mod(i0, 3.0) * 3.0;
+    if (mod(gl_FragCoord.x + s * gl_FragCoord.y, sp) < 1.4) { gl_FragColor = thin; return; } }
+  gl_FragColor = vec4(0.0); }`;
+  const FS_Q = `varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }`;
+  let QUAD = null, EMAT = null;
+  const DIRS = { front: [[0, 0, 1], [0, 1, 0]], top: [[0, 1, 0], [0, 0, -1]], right: [[1, 0, 0], [0, 1, 0]], iso: [[1, 1, 1], [0, 1, 0]] };
+  function camFor(view, box, upp) {          // upp: model units per image pixel
+    const [d, u] = DIRS[view], dir = new V3(...d).normalize(), c = box.getCenter(new V3()), R = box.getSize(new V3()).length() || 1;
+    const cam = new THREE.OrthographicCamera(-1, 1, 1, -1, .1, 10);
+    cam.position.copy(c).addScaledVector(dir, R * 2); cam.up.set(...u); cam.lookAt(c); cam.updateMatrixWorld(true); cam.matrixWorldInverse.copy(cam.matrixWorld).invert();
+    let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity, z0 = Infinity, z1 = -Infinity;
+    for (const x of [box.min.x, box.max.x]) for (const y of [box.min.y, box.max.y]) for (const z of [box.min.z, box.max.z]) {
+      const q = new V3(x, y, z).applyMatrix4(cam.matrixWorldInverse); x0 = Math.min(x0, q.x); x1 = Math.max(x1, q.x); y0 = Math.min(y0, q.y); y1 = Math.max(y1, q.y); z0 = Math.min(z0, q.z); z1 = Math.max(z1, q.z); }
+    const w = Math.max(2, Math.ceil((x1 - x0) / upp)), h = Math.max(2, Math.ceil((y1 - y0) / upp));
+    cam.left = x0; cam.right = x0 + w * upp; cam.top = y1; cam.bottom = y1 - h * upp; cam.near = -z1 - R * .02; cam.far = -z0 + R * .02; cam.updateProjectionMatrix();
+    const toPx = p => { const q = p.clone().applyMatrix4(cam.matrixWorldInverse); return [(q.x - cam.left) / upp, (cam.top - q.y) / upp]; };
+    return { cam, w, h, toPx, upp, depth: cam.far - cam.near };
   }
-  function sheetEx(S, title) {
-    const cap = capture(S, true), F = frameSVG(2, `${title.toUpperCase()} · EXPLODED ASSEMBLY`, 'NTS', { no: `GX-${S.id.toUpperCase()}-02` }), o = F.o, k = 2;
-    const iw = 760, ih = 600, ix = 40, iy = 60, v = render(cap, 'iso', iw * k, ih * k);
-    o.push(`<image href="${v.url}" x="${ix}" y="${iy}" width="${iw}" height="${ih}"/>`);
-    // balloons to a parts list on the right
-    const lx = 860, rows = cap.cats.slice(0, 18);
-    o.push(`<rect x="${lx - 10}" y="52" width="330" height="${24 + rows.length * 22}" fill="rgba(11,38,70,.9)" stroke="${INK}"/><text x="${lx}" y="68" fill="${DIMC}" font-size="10" font-family="JetBrains Mono, monospace">ITEM   ASSEMBLY                    QTY</text>`);
-    rows.forEach((c, i) => {
-      const [px, py] = v.toPx(c.c), bx = ix + px * iw / (iw * k) * 1, by = iy + py * ih / (ih * k);
-      const yy = 86 + i * 22;
-      o.push(`<line x1="${lx - 10}" x2="${lx + 320}" y1="${yy - 15}" y2="${yy - 15}" stroke="${THIN}" stroke-width=".5"/><text x="${lx}" y="${yy}" fill="${INK}" font-size="10" font-family="JetBrains Mono, monospace">${String(c.n).padStart(2, '0')}</text><text x="${lx + 40}" y="${yy}" fill="${INK}" font-size="10" font-family="JetBrains Mono, monospace">${escH(c.name.slice(0, 26))}</text><text x="${lx + 300}" y="${yy}" fill="${INK}" font-size="10" font-family="JetBrains Mono, monospace" text-anchor="end">${c.q}</text>`);
-      const ox = bx + (bx < ix + iw / 2 ? -34 : 34), oy = by - 26;
-      o.push(`<path d="M${bx} ${by}L${ox} ${oy}" stroke="${DIMC}" stroke-width=".7"/><circle cx="${bx}" cy="${by}" r="2" fill="${DIMC}"/><circle cx="${ox}" cy="${oy}" r="10" fill="#0b2646" stroke="${DIMC}"/><text x="${ox}" y="${oy + 3.5}" fill="${DIMC}" font-size="9.5" font-family="JetBrains Mono, monospace" text-anchor="middle">${String(c.n).padStart(2, '0')}</text>`);
+  // render a set of parts in one view; returns the line image and an id buffer for placing balloons and centre lines
+  function shoot(C, P, view, box, unitPx, k, opt = {}) {
+    if (!R2) { R2 = new THREE.WebGLRenderer({ antialias: false, alpha: true, preserveDrawingBuffer: true }); R2.setPixelRatio(1); R2.localClippingEnabled = true; }
+    const lim = 3600 / Math.max(box.getSize(new V3()).length() * unitPx, 1); k = Math.min(k, Math.max(1, lim));
+    const V = camFor(view, box, 1 / (unitPx * k)); V.k = k; V.unitPx = unitPx;
+    const sc = new THREE.Scene(), ids = [], mats = [];
+    C.list.forEach((it, i) => {
+      if (opt.skip && opt.skip(it)) return;
+      const g = it.m.geometry; if (!g.attributes.normal) g.computeVertexNormals();
+      const id = i + 1, cl = opt.clip && !(opt.nocut && opt.nocut(it)) ? [opt.clip] : null;
+      const a = new THREE.ShaderMaterial({ uniforms: { uId: { value: new V3(((id >> 16) & 255) / 255, ((id >> 8) & 255) / 255, (id & 255) / 255) } }, vertexShader: VS, fragmentShader: FS_ID, side: THREE.DoubleSide, clipping: true, clippingPlanes: cl });
+      const b = new THREE.ShaderMaterial({ vertexShader: VS, fragmentShader: FS_N, side: THREE.DoubleSide, clipping: true, clippingPlanes: cl });
+      const mesh = new THREE.Mesh(g, a); mesh.matrixAutoUpdate = false; mesh.matrix.copy(it.mat); mesh.userData.b = b; sc.add(mesh); ids[id] = it; mats.push(a, b);
     });
-    label(o, ix + iw / 2, iy + ih + 22, 'EXPLODED ISOMETRIC', 'assemblies separated along their fitting directions');
-    return `<svg viewBox="0 0 ${F.W} ${F.H}" role="img" aria-label="Exploded assembly">${o.join('')}</svg>`;
+    const opts = { minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter, format: THREE.RGBAFormat, type: THREE.UnsignedByteType };
+    const tI = new THREE.WebGLRenderTarget(V.w, V.h, opts), tN = new THREE.WebGLRenderTarget(V.w, V.h, opts);
+    R2.setClearColor(0x000000, 0); R2.setSize(V.w, V.h, false);
+    R2.setRenderTarget(tI); R2.clear(); R2.render(sc, V.cam);
+    sc.children.forEach(m => { m.userData.a = m.material; m.material = m.userData.b; });
+    R2.setRenderTarget(tN); R2.clear(); R2.render(sc, V.cam);
+    const buf = new Uint8Array(V.w * V.h * 4); R2.readRenderTargetPixels(tI, 0, 0, V.w, V.h, buf);
+    if (!QUAD) { EMAT = new THREE.ShaderMaterial({ uniforms: { tI: { value: null }, tN: { value: null }, px: { value: new THREE.Vector2() }, dth: { value: 0 }, hatch: { value: 0 }, ink: { value: new THREE.Vector4(.84, .91, 1, 1) }, thin: { value: new THREE.Vector4(.56, .7, .88, .95) } }, vertexShader: FS_Q, fragmentShader: FS_E, depthTest: false, depthWrite: false });
+      QUAD = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), EMAT); QUAD.frustumCulled = false; }
+    const U = EMAT.uniforms; U.tI.value = tI.texture; U.tN.value = tN.texture; U.px.value.set(1 / V.w, 1 / V.h); U.hatch.value = opt.clip ? 1 : 0;
+    U.dth.value = (5 * V.upp) / V.depth;
+    R2.setRenderTarget(null); R2.clear(); R2.render(QUAD, V.cam);
+    V.url = R2.domElement.toDataURL('image/png');
+    tI.dispose(); tN.dispose(); mats.forEach(m => m.dispose());
+    V.idAt = (x, y) => { x = Math.round(x); y = Math.round(y); if (x < 0 || y < 0 || x >= V.w || y >= V.h) return null; const o = ((V.h - 1 - y) * V.w + x) * 4; const id = (buf[o] << 16) | (buf[o + 1] << 8) | buf[o + 2]; return id ? ids[id] : null; };
+    // per-item pixel stats, for balloons
+    V.stats = keyOf => { const M = new Map(), st = 2;
+      for (let y = 0; y < V.h; y += st) for (let x = 0; x < V.w; x += st) { const it = V.idAt(x, y); if (!it) continue; const key = keyOf(it); if (key == null) continue;
+        let s = M.get(key); if (!s) M.set(key, s = { n: 0, sx: 0, sy: 0, pts: [] }); s.n++; s.sx += x; s.sy += y; if (s.pts.length < 6000) s.pts.push(x, y); }
+      for (const [key, s] of M) { const cx = s.sx / s.n, cy = s.sy / s.n; let best = null, bd = Infinity;
+        for (let i = 0; i < s.pts.length; i += 2) { const x = s.pts[i], y = s.pts[i + 1], d = (x - cx) ** 2 + (y - cy) ** 2; if (d >= bd) continue;
+          const e = 3 * k, ok = [[e, 0], [-e, 0], [0, e], [0, -e]].every(([u, v]) => { const t = V.idAt(x + u, y + v); return t && keyOf(t) === key; });
+          if (ok || !best) { if (ok || d < bd) { best = [x, y]; bd = ok ? d : bd; } } }
+        s.at = best; }
+      return M; };
+    return V;
+  }
+  // place a rendered view on the sheet at (x, y), top-left, in sheet units
+  function place(o, V, x, y) {
+    const k = V.k; V.x = x; V.y = y; V.sw = V.w / k; V.sh = V.h / k;
+    V.at = p => { const [u, v] = V.toPx(p); return [x + u / k, y + v / k]; };
+    o.push(`<image href="${V.url}" x="${r1(x)}" y="${r1(y)}" width="${r1(V.sw)}" height="${r1(V.sh)}"/>`);
+    return V;
+  }
+
+  // ---------- sheet furniture ----------
+  const T = (x, y, s, opt = {}) => `<text x="${r1(x)}" y="${r1(y)}" fill="${opt.c || INK}" font-size="${opt.size || 9}" font-family="${FONT}"${opt.w ? ` font-weight="${opt.w}"` : ''}${opt.ls ? ` letter-spacing="${opt.ls}"` : ''} text-anchor="${opt.a || 'start'}"${opt.rot ? ` transform="rotate(${opt.rot} ${r1(x)} ${r1(y)})"` : ''}${opt.halo ? ` stroke="${BG}" stroke-width="3" paint-order="stroke"` : ''}>${escH(s)}</text>`;
+  function frame(info) {
+    const o = [];
+    o.push(`<rect width="${SW}" height="${SH}" fill="${BG}"/><rect x=".5" y=".5" width="${SW - 1}" height="${SH - 1}" fill="none" stroke="${THIN}" stroke-width=".5"/>`);
+    o.push(`<rect x="${FX0}" y="${FY0}" width="${FX1 - FX0}" height="${FY1 - FY0}" fill="none" stroke="${INK}" stroke-width="2.1"/>`);
+    // grid reference zones: 8 numbered columns, 6 lettered rows (ISO 5457, A3)
+    const cw = (FX1 - FX0) / 8, rh = (FY1 - FY0) / 6;
+    for (let i = 0; i <= 8; i++) { const x = FX0 + i * cw; o.push(`<path d="M${r1(x)} ${FY0 - 15}V${FY0}M${r1(x)} ${FY1}V${FY1 + 15}" stroke="${THIN}" stroke-width=".7"/>`);
+      if (i < 8) o.push(T(x + cw / 2, FY0 - 4, String(i + 1), { a: 'middle', size: 9, c: THIN }), T(x + cw / 2, FY1 + 12, String(i + 1), { a: 'middle', size: 9, c: THIN })); }
+    for (let j = 0; j <= 6; j++) { const y = FY0 + j * rh; o.push(`<path d="M${FX0 - 15} ${r1(y)}H${FX0}M${FX1} ${r1(y)}H${FX1 + 15}" stroke="${THIN}" stroke-width=".7"/>`);
+      if (j < 6) { const L = 'ABCDEF'[j]; o.push(T(FX0 - 8, y + rh / 2 + 3, L, { a: 'middle', c: THIN }), T(FX1 + 8, y + rh / 2 + 3, L, { a: 'middle', c: THIN })); } }
+    o.push(`<path d="M${SW / 2} 0V${FY0 + 15}M${SW / 2} ${SH}V${FY1 - 15}M0 ${SH / 2}H${FX0 + 15}M${SW} ${SH / 2}H${FX1 - 15}" stroke="${INK}" stroke-width="1.4"/>`);
+    // revision table, top right
+    const rx = FX1 - 330, ry = FY0;
+    o.push(`<rect x="${rx}" y="${ry}" width="330" height="40" fill="${BG}" stroke="${INK}" stroke-width="1.2"/><path d="M${rx} ${ry + 18}H${FX1}M${rx + 36} ${ry}V${ry + 40}M${rx + 216} ${ry}V${ry + 40}M${rx + 286} ${ry}V${ry + 40}" stroke="${THIN}" stroke-width=".6"/>`);
+    [['REV', 6], ['DESCRIPTION', 42], ['DATE', 222], ['BY', 292]].forEach(([t, x]) => o.push(T(rx + x, ry + 12, t, { size: 7.5, c: THIN, ls: .6 })));
+    [['A', 6], ['First issue, drawn from the 3D model', 42], [ISSUE, 222], ['MBS', 292]].forEach(([t, x]) => o.push(T(rx + x, ry + 32, t, { size: 9 })));
+    // general tolerance strip + ISO 7200 title block
+    const { x, y, w, h } = TB;
+    o.push(`<rect x="${x}" y="${y - 20}" width="${w}" height="20" fill="${BG}" stroke="${INK}" stroke-width="1.2"/>`);
+    o.push(T(x + 8, y - 6.5, 'DIMENSIONS IN mm · ISO 8015 · GENERAL TOLERANCES ISO 2768-mK · DO NOT SCALE · BREAK SHARP EDGES', { size: 7.8, ls: .3 }));
+    o.push(`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${BG}" stroke="${INK}" stroke-width="2.1"/>`);
+    const cell = (cx, cy, cw2, ch, k, v, big) => { o.push(`<rect x="${x + cx}" y="${y + cy}" width="${cw2}" height="${ch}" fill="none" stroke="${THIN}" stroke-width=".6"/>`, T(x + cx + 5, y + cy + 9, k, { size: 6.6, c: THIN, ls: .5 }));
+      if (v != null) o.push(T(x + cx + 5, y + cy + ch - (big ? 9 : 6), v, { size: big ? 14 : 9, w: big ? 600 : 400 })); };
+    cell(0, 0, 135, 28, 'RESPONSIBLE DEPT', 'Design engineering'); cell(135, 0, 135, 28, 'TECHNICAL REFERENCE', 'M.B. Stiles'); cell(270, 0, 150, 28, 'DOCUMENT TYPE', info.type); cell(420, 0, 120, 28, 'DOCUMENT STATUS', 'Released');
+    cell(0, 28, 135, 28, 'CREATED BY', 'M.B. Stiles'); cell(135, 28, 135, 28, 'APPROVED BY', 'M.B. Stiles'); cell(270, 28, 150, 28, 'DATE OF ISSUE', ISSUE); cell(420, 28, 120, 28, 'SCALE', info.scale);
+    cell(0, 56, 420, 52, 'TITLE, SUPPLEMENTARY TITLE', null);
+    o.push(T(x + 6, y + 56 + 27, info.title.toUpperCase(), { size: 15, w: 700, ls: .4 }), T(x + 6, y + 56 + 44, info.sub, { size: 9.5, c: THIN }));
+    cell(420, 56, 120, 52, 'PROJECTION', null);
+    // third-angle symbol (ISO 5456-2): truncated cone seen from the side, then its end view to the right
+    const px = x + 445, py = y + 90;
+    o.push(`<g fill="none" stroke="${INK}" stroke-width="1"><path d="M${px} ${py - 6}L${px + 22} ${py - 12}V${py + 12}L${px} ${py + 6}Z"/><circle cx="${px + 52}" cy="${py}" r="12"/><circle cx="${px + 52}" cy="${py}" r="6"/></g><path d="M${px - 6} ${py}H${px + 70}M${px + 52} ${py - 17}V${py + 17}" stroke="${CEN}" stroke-width=".5" stroke-dasharray="7 2 1.5 2"/>`);
+    cell(0, 108, 175, 48, 'LEGAL OWNER', 'M.B. Stiles Engineering'); cell(175, 108, 175, 48, 'IDENTIFICATION NUMBER', null);
+    o.push(T(x + 181, y + 145, info.no, { size: 12.5, w: 600, ls: .5 }));
+    cell(350, 108, 45, 48, 'REV', 'A'); cell(395, 108, 50, 48, 'LANG', 'en'); cell(445, 108, 50, 48, 'SHEET', `${info.n}/${info.of}`); cell(495, 108, 45, 48, 'SIZE', 'A3');
+    return o;
+  }
+  // dimension primitives (ISO 129-1: thin lines, filled 15° arrowheads, text above the line)
+  const arrow = (x, y, dx, dy) => { const L = Math.hypot(dx, dy) || 1, ux = dx / L, uy = dy / L; return `M${r1(x)} ${r1(y)}l${r1(-ux * 8 - uy * 2.2)} ${r1(-uy * 8 + ux * 2.2)}l${r1(uy * 4.4)} ${r1(-ux * 4.4)}z`; };
+  function dimLin(o, a, b, off, txt, horiz) {      // a,b = sheet points; horiz: measure along x (else along y); off = offset of the dimension line
+    if (horiz) { const y = off, x0 = Math.min(a[0], b[0]), x1 = Math.max(a[0], b[0]);
+      o.push(`<path d="M${r1(a[0])} ${r1(a[1] + Math.sign(y - a[1]) * 3)}V${r1(y + Math.sign(y - a[1]) * 4)}M${r1(b[0])} ${r1(b[1] + Math.sign(y - b[1]) * 3)}V${r1(y + Math.sign(y - b[1]) * 4)}M${r1(x0)} ${r1(y)}H${r1(x1)}" stroke="${DIMC}" stroke-width=".55" fill="none"/>`);
+      o.push(`<path d="${arrow(x0, y, -1, 0)}${arrow(x1, y, 1, 0)}" fill="${DIMC}"/>`, T((x0 + x1) / 2, y - 3.5, txt, { a: 'middle', c: DIMC, size: 9.5, halo: 1 })); }
+    else { const x = off, y0 = Math.min(a[1], b[1]), y1 = Math.max(a[1], b[1]);
+      o.push(`<path d="M${r1(a[0] + Math.sign(x - a[0]) * 3)} ${r1(a[1])}H${r1(x + Math.sign(x - a[0]) * 4)}M${r1(b[0] + Math.sign(x - b[0]) * 3)} ${r1(b[1])}H${r1(x + Math.sign(x - b[0]) * 4)}M${r1(x)} ${r1(y0)}V${r1(y1)}" stroke="${DIMC}" stroke-width=".55" fill="none"/>`);
+      o.push(`<path d="${arrow(x, y0, 0, -1)}${arrow(x, y1, 0, 1)}" fill="${DIMC}"/>`, T(x - 3.5, (y0 + y1) / 2, txt, { a: 'middle', c: DIMC, size: 9.5, rot: -90, halo: 1 })); }
+  }
+  function spread(vals, gap) {            // push sorted label positions apart, keeping the set centred on its targets
+    const p = vals.map(v => v.t); for (let it = 0; it < 40; it++) { let moved = false;
+      for (let i = 1; i < p.length; i++) if (p[i] - p[i - 1] < gap) { const d = (gap - (p[i] - p[i - 1])) / 2; p[i - 1] -= d; p[i] += d; moved = true; } if (!moved) break; }
+    vals.forEach((v, i) => v.p = p[i]);
+  }
+  // ordinate dimensions (ISO 129-1 §8.3): origin marked 0, values at the end of each extension line
+  function ordX(o, pts, base, dir) {    // pts: [{x, y, v}] in sheet units, base: y of the value line, dir +1 below / -1 above
+    const L = pts.sort((a, b) => a.x - b.x).map(p => ({ ...p, t: p.x })); spread(L, 11);
+    for (const p of L) { const y0 = p.y + dir * 4, yk = base - dir * 7;
+      o.push(`<path d="M${r1(p.x)} ${r1(y0)}V${r1(yk)}L${r1(p.p)} ${r1(base)}" stroke="${DIMC}" stroke-width=".5" fill="none"/>`);
+      if (p.v === 0) o.push(`<circle cx="${r1(p.x)}" cy="${r1(p.y)}" r="2.6" fill="none" stroke="${DIMC}" stroke-width=".7"/>`);
+      o.push(T(p.p + 3.3, base + dir * 2, fmtD(p.v), { c: DIMC, size: 9, rot: -90, a: dir > 0 ? 'end' : 'start', halo: 1 })); }
+  }
+  function ordY(o, pts, base, dir) {    // dir -1 values to the left, +1 to the right
+    const L = pts.sort((a, b) => a.y - b.y).map(p => ({ ...p, t: p.y })); spread(L, 11);
+    for (const p of L) { const x0 = p.x + dir * 4, xk = base - dir * 7;
+      o.push(`<path d="M${r1(x0)} ${r1(p.y)}H${r1(xk)}L${r1(base)} ${r1(p.p)}" stroke="${DIMC}" stroke-width=".5" fill="none"/>`);
+      if (p.v === 0) o.push(`<circle cx="${r1(p.x)}" cy="${r1(p.y)}" r="2.6" fill="none" stroke="${DIMC}" stroke-width=".7"/>`);
+      o.push(T(base + dir * 2, p.p + 3.3, fmtD(p.v), { c: DIMC, size: 9, a: dir < 0 ? 'end' : 'start', halo: 1 })); }
+  }
+  function datum(o, x, y, L, side) {    // ISO 5459 datum feature symbol: filled triangle on the feature, letter in a frame
+    const d = { down: [0, 1], up: [0, -1], left: [-1, 0], right: [1, 0] }[side], ex = x + d[0] * 16, ey = y + d[1] * 16;
+    o.push(`<path d="M${r1(x - (d[1] ? 5 : 0))} ${r1(y - (d[0] ? 5 : 0))}L${r1(x + (d[1] ? 5 : 0))} ${r1(y + (d[0] ? 5 : 0))}L${r1(x + d[0] * 7)} ${r1(y + d[1] * 7)}Z" fill="${DIMC}"/><path d="M${r1(x + d[0] * 7)} ${r1(y + d[1] * 7)}L${r1(ex)} ${r1(ey)}" stroke="${DIMC}" stroke-width=".7"/>`);
+    const bx = ex + (d[0] ? d[0] * 8 : 0) - 8, by = ey + (d[1] ? d[1] * 8 : 0) - 8;
+    o.push(`<rect x="${r1(bx)}" y="${r1(by)}" width="16" height="16" fill="${BG}" stroke="${DIMC}" stroke-width=".8"/>`, T(bx + 8, by + 12, L, { a: 'middle', c: DIMC, size: 10.5, w: 600 }));
+  }
+  function seen(V, a) {                 // is any part of this axis's own parts visible around its centre?
+    const [x, y] = V.at(a.c), u = (x - V.x) * V.k, v = (y - V.y) * V.k, rp = a.r * V.unitPx * V.k;
+    return [[0, 0], [.7, 0], [-.7, 0], [0, .7], [0, -.7], [.45, .45], [-.45, -.45]].some(([p, q]) => { const it = V.idAt(u + p * rp, v + q * rp); return it && a.meshes.has(it.m); });
+  }
+  function centreLines(o, V, axes, view, max = 30) {   // ISO 128 dash-dot narrow: crosses on end-on axes, lines along side-on axes
+    const vk = { front: 2, top: 1, right: 0 }[view]; let n = 0; const done = [];
+    for (const a of axes) { if (n >= max) break;
+      const rp = a.r * V.unitPx; if (rp < 2.2) continue;
+      if (a.k === vk) {
+        const [x, y] = V.at(a.c), u = (x - V.x) * V.k, v = (y - V.y) * V.k;
+        if (!seen(V, a) || done.some(d => Math.hypot(d[0] - x, d[1] - y) < 3)) continue;
+        const e = Math.max(rp + 5, 6); done.push([x, y]);
+        o.push(`<path d="M${r1(x - e)} ${r1(y)}H${r1(x + e)}M${r1(x)} ${r1(y - e)}V${r1(y + e)}" stroke="${CEN}" stroke-width=".5" stroke-dasharray="${rp > 12 ? '12 2.5 2 2.5' : '5 1.5 1.5 1.5'}" fill="none"/>`); n++;
+      } else {
+        const p0 = a.c.clone().setComponent(a.k, a.lo), p1 = a.c.clone().setComponent(a.k, a.hi), A = V.at(p0), B = V.at(p1);
+        const L = Math.hypot(B[0] - A[0], B[1] - A[1]); if (L < 6) continue;
+        const ux = (B[0] - A[0]) / L, uy = (B[1] - A[1]) / L, mid = V.at(a.c.clone().setComponent(a.k, (a.lo + a.hi) / 2));
+        const it = V.idAt((mid[0] - V.x) * V.k, (mid[1] - V.y) * V.k); if (!it || !a.meshes.has(it.m)) continue;
+        o.push(`<path d="M${r1(A[0] - ux * 5)} ${r1(A[1] - uy * 5)}L${r1(B[0] + ux * 5)} ${r1(B[1] + uy * 5)}" stroke="${CEN}" stroke-width=".5" stroke-dasharray="12 2.5 2 2.5" fill="none"/>`); n++;
+      }
+    }
+  }
+  function balloons(o, V, P, keyOf, labelOf, max, bounds) {
+    const M = V.stats(keyOf), L = [...M].filter(([, s]) => s.at && s.n > 4).sort((a, b) => b[1].n - a[1].n).slice(0, max);
+    if (!L.length) return [];
+    const pad = 30, R = { x0: Math.max(bounds.x0, V.x - pad), y0: Math.max(bounds.y0, V.y - pad), x1: Math.min(bounds.x1, V.x + V.sw + pad), y1: Math.min(bounds.y1, V.y + V.sh + pad) };
+    const W = R.x1 - R.x0, H = R.y1 - R.y0, PER = 2 * (W + H), cx = (R.x0 + R.x1) / 2, cy = (R.y0 + R.y1) / 2;
+    const tOf = (x, y) => { const dx = x - cx || 1e-6, dy = y - cy || 1e-6, s = Math.min(Math.abs((W / 2) / dx), Math.abs((H / 2) / dy)), px = cx + dx * s, py = cy + dy * s;
+      if (Math.abs(py - R.y0) < .5) return px - R.x0; if (Math.abs(px - R.x1) < .5) return W + (py - R.y0); if (Math.abs(py - R.y1) < .5) return W + H + (R.x1 - px); return 2 * W + H + (R.y1 - py); };
+    const ptOf = t => { t = ((t % PER) + PER) % PER; if (t < W) return [R.x0 + t, R.y0]; if (t < W + H) return [R.x1, R.y0 + t - W]; if (t < 2 * W + H) return [R.x1 - (t - W - H), R.y1]; return [R.x0, R.y1 - (t - 2 * W - H)]; };
+    const B = L.map(([key, s]) => { const ax = V.x + s.at[0] / V.k, ay = V.y + s.at[1] / V.k; return { key, ax, ay, t: tOf(ax, ay) }; }).sort((a, b) => a.t - b.t);
+    const gap = Math.min(25, PER / B.length);
+    for (let it = 0; it < 60; it++) { let moved = false; for (let i = 0; i < B.length; i++) { const a = B[i], b = B[(i + 1) % B.length]; let d = b.t - a.t; if (i === B.length - 1) d += PER;
+      if (d < gap) { const s = (gap - d) / 2; a.t -= s; b.t += s; moved = true; } } if (!moved) break; }
+    for (const b of B) { const [x, y] = ptOf(b.t), L2 = Math.hypot(b.ax - x, b.ay - y) || 1, ex = x + (b.ax - x) / L2 * 10, ey = y + (b.ay - y) / L2 * 10;
+      o.push(`<path d="M${r1(ex)} ${r1(ey)}L${r1(b.ax)} ${r1(b.ay)}" stroke="${DIMC}" stroke-width=".6"/><circle cx="${r1(b.ax)}" cy="${r1(b.ay)}" r="1.9" fill="${DIMC}"/><circle cx="${r1(x)}" cy="${r1(y)}" r="10" fill="${BG}" stroke="${DIMC}" stroke-width=".8"/>`, T(x, y + 3.4, labelOf(b.key), { a: 'middle', c: DIMC, size: 9.5, w: 600 })); }
+    return B;
+  }
+  const viewLabel = (o, x, y, t, sub) => { o.push(T(x, y, t, { a: 'middle', size: 11.5, w: 700, ls: 1.2 })); if (sub) o.push(T(x, y + 13, sub, { a: 'middle', size: 8.5, c: THIN })); };
+  const pickRatio = (fits) => RATIOS.find(fits) || RATIOS[RATIOS.length - 1];
+
+  // ---------- sheet 1: general arrangement ----------
+  function sheetGA(D) {
+    const { P, F, C, axes, S, title, N } = D, X = C.box.max.x - C.box.min.x, Y = C.box.max.y - C.box.min.y, Z = C.box.max.z - C.box.min.z;
+    const ML = 84, MB = 92, GV = 30, GH = 86, MR = 62, MT = 62;
+    const W = u => ML + X * u + GH + Z * u + MR, H = u => MT + Z * u + GV + Y * u + MB;
+    const optA = { x: FX0 + 4, y: FY0 + 4, w: TB.x - 8 - FX0 - 4, h: FY1 - FY0 - 8 }, optB = { x: FX0 + 4, y: FY0 + 4, w: 870 - FX0, h: TB.y - 26 - FY0 - 4 };
+    let ratio = null, box = null;
+    for (const r of RATIOS) { const u = PX * r * S.mm; for (const b of [optB, optA]) if (W(u) <= b.w && H(u) <= b.h) { ratio = r; box = b; break; } if (ratio) break; }
+    if (!ratio) { ratio = RATIOS[RATIOS.length - 1]; box = optB; }
+    const u = PX * ratio * S.mm, sx = box.x + (box.w - W(u)) / 2, sy = box.y + (box.h - H(u)) / 2;
+    const o = frame({ type: 'Assembly drawing', scale: fmtR(ratio), title, sub: 'General arrangement', no: D.no, n: 1, of: N });
+    const fx = sx + ML, tyy = sy + MT, fy = tyy + Z * u + GV, rx = fx + X * u + GH;
+    const vF = place(o, shoot(C, P, 'front', C.box, u, 2.5), fx, fy);
+    const vT = place(o, shoot(C, P, 'top', C.box, u, 2.5), fx, tyy);
+    const vR = place(o, shoot(C, P, 'right', C.box, u, 2.5), rx, fy);
+    D.views = { front: vF, top: vT, right: vR };
+    centreLines(o, vF, axes, 'front'); centreLines(o, vT, axes, 'top'); centreLines(o, vR, axes, 'right');
+    const b = C.box, mm = S.mm;
+    // datum A: the mounting face (underside)
+    o.push(`<path d="M${r1(vF.x + vF.sw + 3)} ${r1(vF.y + vF.sh)}H${r1(vF.x + vF.sw + 34)}" stroke="${DIMC}" stroke-width=".5"/>`);
+    datum(o, vF.x + vF.sw + 26, vF.y + vF.sh, 'A', 'down');
+    // functional dimensions: axis heights above datum A, and centre distances from the main axis of each view
+    const pick = (k, V) => { const out = []; for (const a of axes) { if (a.k !== k || a.r * mm < 2 || a.r * V.unitPx < 2.5 || ![...a.meshes].some(m => !HWRE.test((S.cats[P.meshGroup.get(m)] || {}).name || ''))) continue;
+        const [x, y] = V.at(a.c); if (!seen(V, a)) continue;
+        if (out.some(q => Math.hypot(q.x - x, q.y - y) < 4)) continue; out.push({ a, x, y }); if (out.length >= 6) break; } return out; };
+    const uniq = (L, f, tol) => { const s2 = []; for (const p of L) { const v = f(p); if (Math.abs(v) < 1 || s2.some(q => Math.abs(q.v - v) < tol)) continue; s2.push({ ...p, v }); } return s2.sort((a, c) => Math.abs(a.v) - Math.abs(c.v)).slice(0, 3); };
+    const fA = pick(2, vF), tA = pick(1, vT), rA = pick(0, vR);
+    let tl = 0, tb = 0, tt = 0, tlt = 0, trr = 0, tbr = 0;
+    const base = vF.y + vF.sh;
+    uniq(fA, p => (p.a.c.y - b.min.y) * mm, 1.5).forEach(p => dimLin(o, [p.x, p.y], [vF.x, base], vF.x - 16 - 15 * tl++, fmtD(p.v), false));
+    if (fA.length) { const m0 = fA[0]; uniq(fA.slice(1), p => (p.a.c.x - m0.a.c.x) * mm, 1.5).forEach(p => dimLin(o, [m0.x, m0.y], [p.x, p.y], base + 18 + 15 * tb++, fmtD(Math.abs(p.v)), true)); }
+    if (tA.length) { const m0 = tA[0];
+      uniq(tA.slice(1), p => (p.a.c.x - m0.a.c.x) * mm, 1.5).forEach(p => dimLin(o, [m0.x, m0.y], [p.x, p.y], vT.y - 16 - 15 * tt++, fmtD(Math.abs(p.v)), true));
+      uniq(tA.slice(1), p => (p.a.c.z - m0.a.c.z) * mm, 1.5).forEach(p => dimLin(o, [m0.x, m0.y], [p.x, p.y], vT.x - 16 - 15 * tlt++, fmtD(Math.abs(p.v)), false)); }
+    uniq(rA, p => (p.a.c.y - b.min.y) * mm, 1.5).forEach(p => dimLin(o, [p.x, p.y], [vR.x + vR.sw, base], vR.x + vR.sw + 16 + 15 * trr++, fmtD(p.v), false));
+    if (rA.length) { const m0 = rA[0]; uniq(rA.slice(1), p => (p.a.c.z - m0.a.c.z) * mm, 1.5).forEach(p => dimLin(o, [m0.x, m0.y], [p.x, p.y], base + 18 + 15 * tbr++, fmtD(Math.abs(p.v)), true)); }
+    // reference overall dimensions outside them (bracketed: taken from the model, not for inspection)
+    dimLin(o, [vF.x, base], [vF.x + vF.sw, base], base + 30 + 15 * Math.max(tb, tbr), `(${fmtD(X * mm)})`, true);
+    dimLin(o, [vF.x, vF.y], [vF.x, base], vF.x - 28 - 15 * tl, `(${fmtD(Y * mm)})`, false);
+    dimLin(o, [vR.x, base], [vR.x + vR.sw, base], base + 30 + 15 * Math.max(tb, tbr), `(${fmtD(Z * mm)})`, true);
+    // diameters of the largest end-on round features (ISO 129-1 leader, Ø symbol)
+    let nd = 0; const dias = [];
+    for (const [V, k] of [[vT, 1], [vF, 2], [vR, 0]]) for (const a of axes) {
+      if (nd >= 4 || a.k !== k || a.r * V.unitPx < 16 || dias.some(d => Math.abs(d - a.r) < a.r * .03)) continue;
+      const [x, y] = V.at(a.c), ang = -Math.PI / 4, ex = x + Math.cos(ang) * a.r * V.unitPx, ey = y + Math.sin(ang) * a.r * V.unitPx;
+      const it = V.idAt((ex - V.x) * V.k - 3, (ey - V.y) * V.k + 3); if (!it || !a.meshes.has(it.m)) continue;
+      const lx = ex + 22, ly = ey - 22; dias.push(a.r); nd++;
+      o.push(`<path d="${arrow(ex, ey, ex - lx, ey - ly)}" fill="${DIMC}"/><path d="M${r1(ex)} ${r1(ey)}L${r1(lx)} ${r1(ly)}h18" stroke="${DIMC}" stroke-width=".55" fill="none"/>`, T(lx + 2, ly - 3, `Ø${fmtD(a.r * 2 * mm)}`, { c: DIMC, size: 9.5, halo: 1 }));
+    }
+    // section line A–A (on the top view) and detail circles
+    const sec = D.sec, sv = vT;
+    if (sec.view === 'front') { const [, y] = sv.at(new V3(b.min.x, b.max.y, sec.at)), x0 = sv.x - 14, x1 = sv.x + sv.sw + 14;
+      o.push(`<path d="M${r1(x0)} ${r1(y)}H${r1(x1)}" stroke="${INK}" stroke-width=".5" stroke-dasharray="14 3 2 3"/><path d="M${r1(x0)} ${r1(y)}h12M${r1(x1)} ${r1(y)}h-12" stroke="${INK}" stroke-width="2.2"/>`);
+      for (const x of [x0 + 4, x1 - 4]) o.push(`<path d="M${r1(x)} ${r1(y)}V${r1(y - 16)}" stroke="${INK}" stroke-width=".7"/><path d="${arrow(x, y - 18, 0, -1)}" fill="${INK}"/>`, T(x + (x < sv.x ? -9 : 9), y - 14, 'A', { a: 'middle', size: 12, w: 700 }));
+    } else { const [x] = sv.at(new V3(sec.at, b.max.y, b.min.z)), y0 = sv.y - 14, y1 = sv.y + sv.sh + 14;
+      o.push(`<path d="M${r1(x)} ${r1(y0)}V${r1(y1)}" stroke="${INK}" stroke-width=".5" stroke-dasharray="14 3 2 3"/><path d="M${r1(x)} ${r1(y0)}v12M${r1(x)} ${r1(y1)}v-12" stroke="${INK}" stroke-width="2.2"/>`);
+      for (const y of [y0 + 4, y1 - 4]) o.push(`<path d="M${r1(x)} ${r1(y)}H${r1(x - 16)}" stroke="${INK}" stroke-width=".7"/><path d="${arrow(x - 18, y, -1, 0)}" fill="${INK}"/>`, T(x - 14, y + (y < sv.y ? -6 : 14), 'A', { a: 'middle', size: 12, w: 700 }));
+    }
+    for (const d of D.details) { const V = D.views[d.view]; if (!V || d.fromSec) continue; const c = V.at(d.c), rr = Math.max(9, d.rad * V.unitPx);
+      o.push(`<circle cx="${r1(c[0])}" cy="${r1(c[1])}" r="${r1(rr)}" fill="none" stroke="${INK}" stroke-width=".55"/>`, T(c[0] - rr * .72 - 6, c[1] - rr * .72 - 3, d.L, { size: 12, w: 700, halo: 1, a: 'end' })); }
+    // isometric, technical data and notes in the right-hand column
+    const cx0 = 890, cw = FX1 - 8 - cx0, iy = FY0 + 56, ih = 250;
+    const C3 = new THREE.Box3(), iv = camFor('iso', C.box, 1); C3.copy(C.box);
+    const iu = pickRatio(r => (iv.w * PX * r * S.mm) <= cw && (iv.h * PX * r * S.mm) <= ih);
+    {
+      const vI = shoot(C, P, 'iso', C.box, PX * iu * S.mm, 2.5); place(o, vI, cx0 + (cw - vI.w / vI.k) / 2, iy + (ih - vI.h / vI.k) / 2);
+      viewLabel(o, cx0 + cw / 2, iy + ih + 16, 'ISOMETRIC VIEW', `scale ${fmtR(iu)}`);
+    }
+    let ty = iy + ih + 44;
+    const spec = D.spec.slice(0, 7);
+    o.push(T(cx0, ty, 'TECHNICAL DATA', { size: 9.5, w: 700, c: DIMC, ls: .8 })); ty += 6;
+    o.push(`<rect x="${cx0}" y="${ty}" width="${cw}" height="${spec.length * 15}" fill="none" stroke="${THIN}" stroke-width=".6"/>`);
+    spec.forEach(([k, v], i) => { const y = ty + i * 15; if (i) o.push(`<path d="M${cx0} ${y}H${cx0 + cw}" stroke="${THIN}" stroke-width=".4"/>`);
+      o.push(T(cx0 + 5, y + 10.5, k.toUpperCase().slice(0, 26), { size: 7.6, c: THIN, ls: .3 }), T(cx0 + 150, y + 10.5, v.slice(0, 40), { size: 8.6 })); });
+    ty += spec.length * 15 + 22;
+    const notes = ['1. DIMENSIONS IN MILLIMETRES. TOLERANCING TO ISO 8015;', '    GENERAL TOLERANCES ISO 2768-mK UNLESS STATED.', '2. ( ) REFERENCE DIMENSION, TAKEN FROM THE 3D MODEL.',
+      '3. AXIS HEIGHTS FROM DATUM A; CENTRES FROM THE MAIN AXIS.', '4. HIDDEN DETAIL OMITTED FOR CLARITY.', `5. ITEM NUMBERS: SHEETS 2 AND 3, PARTS LIST SHEET ${N > 3 ? 4 : 3}.`, '6. SECTION A–A AND DETAILS: SHEET 2.'];
+    o.push(T(cx0, ty, 'NOTES', { size: 9.5, w: 700, c: DIMC, ls: .8 }));
+    notes.forEach((t, i) => o.push(T(cx0, ty + 15 + i * 12.5, t, { size: 7.9 })));
+    return svg(o, 'General arrangement');
+  }
+  const svg = (o, label) => `<svg viewBox="0 0 ${SW} ${SH}" role="img" aria-label="${escH(label)}" font-family="${FONT}">${o.join('')}</svg>`;
+
+  // ---------- sheet 2: section A–A and detail views ----------
+  const NOSEC = /shaft|pin|rod|bolt|screw|nut|washer|key|rivet|ball|dowel|stud|axle|spindle|fastener|bearing/i;
+  function sheetSec(D) {
+    const { P, F, C, S, title, N, sec } = D, mm = S.mm, b = C.box;
+    const o = frame({ type: 'Assembly drawing', scale: 'AS SHOWN', title, sub: 'Section A–A and details', no: D.no, n: 2, of: N });
+    // ISO 128-50: shafts, pins, fasteners and other solid standard parts are not sectioned
+    const solid = it => { const n = pname(it.m), cy = cylOf(it.m.geometry), row = P.meshItem.get(it.m);
+      return NOSEC.test(n) || (row && NOSEC.test(row.name)) || HWRE.test((S.cats[P.meshGroup.get(it.m)] || {}).name || '') && !!cy || (!!cy && cy.len > 2.2 * cy.r * 2); };
+    const plane = sec.view === 'front' ? new THREE.Plane(new V3(0, 0, -1), sec.at) : new THREE.Plane(new V3(-1, 0, 0), sec.at);
+    const kAx = sec.view === 'front' ? 'z' : 'x';
+    const skip = it => solid(it) && it.b.min[kAx] > sec.at;      // whole parts lying entirely in the removed half
+    const box = b.clone(); box.max[kAx] = sec.at + (b.max[kAx] - b.min[kAx]) * .002;
+    const sz = box.getSize(new V3()), wv = sec.view === 'front' ? sz.x : sz.z, hv = sz.y;
+    const area = { x: FX0 + 46, y: FY0 + 60, w: 600, h: FY1 - FY0 - 150 };
+    const ratio = pickRatio(r => wv * PX * r * mm <= area.w && hv * PX * r * mm <= area.h), u = PX * ratio * mm;
+    const V = shoot(C, P, sec.view, box, u, 2.5, { clip: plane, nocut: solid, skip });
+    place(o, V, area.x + (area.w - V.w / V.k) / 2, area.y + (area.h - V.h / V.k) / 2);
+    centreLines(o, V, D.axes, sec.view, 20);
+    balloons(o, V, P, it => (P.meshItem.get(it.m) || {}).item, k => String(k), 14, { x0: FX0 + 8, y0: FY0 + 8, x1: 690, y1: FY1 - 30 });
+    viewLabel(o, V.x + V.sw / 2, Math.min(FY1 - 26, V.y + V.sh + 50), 'SECTION A–A', `scale ${fmtR(ratio)} · shafts, pins and fasteners not sectioned (ISO 128-50)`);
+    // details down the right-hand side
+    const n = D.details.length, colX = 720, colW = FX1 - 10 - colX, slotH = (TB.y - 30 - FY0 - 64) / Math.max(n, 1);
+    D.details.forEach((d, i) => {
+      const reg = d.reg, rs = reg.getSize(new V3()), [aw, ah] = d.view === 'front' ? [rs.x, rs.y] : d.view === 'top' ? [rs.x, rs.z] : [rs.z, rs.y];
+      const sh = slotH - 44, rr = pickRatio(r => aw * PX * r * mm <= colW && ah * PX * r * mm <= sh), uu = PX * rr * mm;
+      const VD = d.fromSec ? shoot(C, P, sec.view, reg, uu, 2.5, { clip: plane, nocut: solid, skip }) : shoot(d.C, P, d.view, reg, uu, 2.5);
+      if (d.fromSec) { const c = V.at(d.c), rc = Math.max(9, d.rad * V.unitPx); o.push(`<circle cx="${r1(c[0])}" cy="${r1(c[1])}" r="${r1(rc)}" fill="none" stroke="${INK}" stroke-width=".55"/>`, T(c[0] + rc * .72 + 4, c[1] - rc * .72 - 3, d.L, { size: 12, w: 700, halo: 1 })); }
+      const y0 = FY0 + 60 + i * slotH; place(o, VD, colX + (colW - VD.w / VD.k) / 2, y0 + (sh - VD.h / VD.k) / 2);
+      balloons(o, VD, P, it => (P.meshItem.get(it.m) || {}).item, k => String(k), 6, { x0: colX - 26, y0: i ? y0 + 6 : Math.max(y0 - 14, FY0 + 50), x1: FX1 - 6, y1: y0 + sh + 2 });
+      viewLabel(o, colX + colW / 2, y0 + sh + 22, `DETAIL ${d.L} · ${d.label.toUpperCase()}`, d.fromSec ? `scale ${fmtR(rr)} · from section A–A` : `scale ${fmtR(rr)} · ${d.view} view${d.hide && d.hide.length ? ' · covers removed' : ''}${d.cut ? ' · parts in front removed' : ''}`);
+    });
+    return svg(o, 'Section and details');
+  }
+
+  // ---------- sheet 3: exploded assembly with item balloons; parts list above the title block (ISO 7573) ----------
+  function partsTable(o, rows, x, yBottom, w, head, maxRows) {
+    const rh = 13.5, cols = [[0, 'ITEM', 30], [30, 'QTY', 30], [60, 'PART NO.', 74], [134, 'DESCRIPTION', w - 134 - 150], [w - 150, 'MATERIAL', 150]];
+    const L = rows.slice(0, maxRows); let y = yBottom - rh;
+    o.push(`<rect x="${x}" y="${r1(yBottom - rh * (L.length + 1))}" width="${w}" height="${r1(rh * (L.length + 1))}" fill="${BG}" stroke="${INK}" stroke-width="1.2"/>`);
+    cols.forEach(([cx, t]) => o.push(T(x + cx + 4, y + 9.5, t, { size: 7.2, c: THIN, ls: .5 })));
+    o.push(`<path d="M${x} ${r1(y)}H${x + w}" stroke="${INK}" stroke-width="1"/>`);
+    cols.slice(1).forEach(([cx]) => o.push(`<path d="M${x + cx} ${r1(yBottom - rh * (L.length + 1))}V${yBottom}" stroke="${THIN}" stroke-width=".5"/>`));
+    for (const r of L) { y -= rh; o.push(`<path d="M${x} ${r1(y)}H${x + w}" stroke="${THIN}" stroke-width=".35"/>`);
+      const vals = [String(r.item), String(r.q), r.pn, r.name, r.mat], lim = [4, 5, 12, Math.floor((w - 284) / 4.7), 30];
+      cols.forEach(([cx], i) => o.push(T(x + cx + 4, y + 9.8, vals[i].length > lim[i] ? vals[i].slice(0, lim[i] - 1) + '…' : vals[i], { size: 8.2 }))); }
+    if (head) o.push(T(x, r1(yBottom - rh * (L.length + 1) - 6), head, { size: 9.5, w: 700, c: DIMC, ls: .8 }));
+    return L.length;
+  }
+  function sheetEx(D) {
+    const { P, F, S, title, N } = D, CE = collect(P, F, 1), byAsm = P.rows.length > 44;
+    const o = frame({ type: 'Assembly drawing', scale: 'AS SHOWN', title, sub: byAsm ? 'Exploded assembly · sub-assemblies' : 'Exploded assembly · parts list', no: D.no, n: 3, of: N });
+    const iv = camFor('iso', CE.box, 1), area = { x: FX0 + 40, y: FY0 + 50, w: 560, h: FY1 - FY0 - 120 };
+    const ratio = pickRatio(r => iv.w * PX * r * S.mm <= area.w && iv.h * PX * r * S.mm <= area.h);
+    const V = shoot(CE, P, 'iso', CE.box, PX * ratio * S.mm, 2.5);
+    place(o, V, area.x + (area.w - V.w / V.k) / 2, area.y + (area.h - V.h / V.k) / 2);
+    const rows = byAsm ? P.groups.map((g, i) => ({ item: i + 1, q: 1, pn: g.pn, name: `${g.name} (${g.list.reduce((a, r) => a + r.q, 0)} pcs)`, mat: 'See sheet 4', gi: g.gi })) : P.rows;
+    const keyOf = byAsm ? (it => P.meshGroup.get(it.m)) : (it => (P.meshItem.get(it.m) || {}).item);
+    const lab = byAsm ? (k => String(P.groups.findIndex(g => g.gi === k) + 1)) : (k => String(k));
+    balloons(o, V, P, keyOf, lab, byAsm ? 20 : 34, { x0: FX0 + 8, y0: FY0 + 8, x1: 680, y1: FY1 - 30 });
+    viewLabel(o, area.x + area.w / 2, FY1 - 28, 'EXPLODED ISOMETRIC VIEW', `scale ${fmtR(ratio)} · parts moved apart along their assembly directions`);
+    partsTable(o, rows, TB.x, TB.y - 20, TB.w, byAsm ? 'SUB-ASSEMBLIES (PARTS LIST: SHEET 4)' : 'PARTS LIST', 44);
+    return svg(o, 'Exploded assembly');
+  }
+  function sheetPL(D) {
+    const { P, title, N } = D, o = frame({ type: 'Parts list', scale: '—', title, sub: 'Parts list', no: D.no, n: 4, of: N });
+    // multi-column parts list, grouped by sub-assembly
+    const lines = []; P.groups.forEach((g, i) => { lines.push({ head: `${i + 1}  ${g.pn}  ${g.name.toUpperCase()}` }); g.list.forEach(r => lines.push(r)); });
+    const colW = 370, gapC = 14, x0 = FX0 + 12, top = FY0 + 64, rh = 12.6;
+    const per = Math.floor((TB.y - 30 - top) / rh); let col = 0, row = 0;
+    o.push(T(x0, FY0 + 40, 'PARTS LIST · ISO 7573', { size: 11, w: 700, c: DIMC, ls: 1 }), T(x0, FY0 + 54, `${P.rows.length} line items · ${P.pieces} pieces · item numbers match sheets 2 and 3 and the bill of materials`, { size: 8.5, c: THIN }));
+    const hdr = (cx) => { o.push(`<path d="M${cx} ${top}H${cx + colW}" stroke="${INK}" stroke-width=".9"/>`); [['ITEM', 0], ['QTY', 30], ['PART NO.', 58], ['DESCRIPTION', 128], ['MATERIAL', 262]].forEach(([t, dx]) => o.push(T(cx + dx + 2, top - 3, t, { size: 7, c: THIN, ls: .4 }))); };
+    hdr(x0);
+    for (const L of lines) {
+      if (row >= per) { col++; row = 0; if (col > 2) break; hdr(x0 + col * (colW + gapC)); }
+      const cx = x0 + col * (colW + gapC), y = top + row * rh;
+      if (L.head) o.push(`<rect x="${cx}" y="${r1(y + 1)}" width="${colW}" height="${r1(rh - 1)}" fill="rgba(143,180,224,.14)"/>`, T(cx + 3, y + 9.7, L.head.slice(0, 58), { size: 7.8, w: 700, ls: .3 }));
+      else { const v = [String(L.item), String(L.q), L.pn, L.name.length > 25 ? L.name.slice(0, 24) + '…' : L.name, L.mat.length > 21 ? L.mat.slice(0, 20) + '…' : L.mat];
+        [0, 30, 58, 128, 262].forEach((dx, i) => o.push(T(cx + dx + 2, y + 9.7, v[i], { size: 8 }))); o.push(`<path d="M${cx} ${r1(y + rh)}H${cx + colW}" stroke="${THIN}" stroke-width=".3"/>`); }
+      row++;
+    }
+    return svg(o, 'Parts list');
+  }
+
+  // ---------- assemble the set ----------
+  function specOf(id) { const dl = document.getElementById(id === 'jansen' ? 'specs-dl' : 'sp-' + id); if (!dl) return [];
+    return [...dl.querySelectorAll('div')].map(d => [(d.querySelector('dt') || {}).textContent || '', (d.querySelector('dd') || {}).textContent || '']).filter(([a, b]) => a && b && !/loading/i.test(b)); }
+  function plan(id) {
+    const P = items(id); if (!P) return null; const S = P.S, F = frameOf(P), C = collect(P, F, 0), axes = axesOf(C, P);
+    const title = id === 'jansen' ? 'Jansen linkage leg' : MODEL[id].title;
+    const D = { id, P, F, C, S, axes, title, no: `${P.code}-000-GA`, spec: specOf(id) };
+    // section plane through the main axis, so the shaft line and its bearings are cut lengthwise
+    const SECAT = { hydro: 'magnet_rotor', walker: 'drive_crank', helio: 'turret_hub', atom: 'camshaft' };
+    const main = (SECAT[id] && axes.find(a => [...a.meshes].some(m => pname(m) === SECAT[id]))) || axes.find(a => a.r * S.mm >= 2), ctr = C.box.getCenter(new V3());
+    D.sec = !main ? { view: 'front', at: ctr.z } : main.k === 2 ? { view: 'right', at: main.c.x } : { view: 'front', at: main.c.z };
+    const SECV = { hydro: 'right' };
+    if (SECV[id]) { const tg = C.list.filter(it => pname(it.m) === SECAT[id]); if (tg.length) { const bb = new THREE.Box3(); tg.forEach(it => bb.union(it.b)); const c = bb.getCenter(new V3()); D.sec = SECV[id] === 'right' ? { view: 'right', at: c.x } : { view: 'front', at: c.z }; } }
+    // detail views
+    const L = 'BCDEFG'; D.details = [];
+    for (const d of (DET[id] || [])) {
+      const tgt = C.list.filter(it => nameIn(it.m, d.parts)); if (!tgt.length) continue;
+      let use = tgt; if (d.one) { const g = new Map(); tgt.forEach(it => { const n = pname(it.m); if (!g.has(n)) g.set(n, []); g.get(n).push(it); });
+        const first = tgt[0], fc = first.b.getCenter(new V3()); use = tgt.filter(it => it.b.getCenter(new V3()).distanceTo(fc) < first.b.getSize(new V3()).length() * 1.6); }
+      const reg = new THREE.Box3(); use.forEach(it => reg.union(it.b));
+      const rs = reg.getSize(new V3()), pad = Math.max(rs.length() * .12, 6 / S.mm); reg.expandByScalar(pad);
+      const area = { front: rs.x * rs.y, top: rs.x * rs.z, right: rs.z * rs.y }, view = d.sec ? D.sec.view : d.view || Object.keys(area).sort((a, b2) => area[b2] - area[a])[0];
+      if (d.sec) { const k = D.sec.view === 'front' ? 'z' : 'x'; reg.max[k] = Math.min(reg.max[k], D.sec.at); reg.min[k] = Math.min(reg.min[k], D.sec.at - 1); }
+      const fwd = { front: 'z', top: 'y', right: 'x' }[view], hide = d.hide || [];
+      let cut = false; const skip = m => { if (nameIn(m, hide)) return true; return false; };
+      const CD = collect(P, F, 0, m => skip(m));
+      CD.list = CD.list.filter(it => { const front = it.b.min[fwd] > reg.max[fwd] - pad * .5 && !use.some(u => u.m === it.m); if (front) cut = true; return !front; });
+      const lc = reg.getCenter(new V3()), rad = Math.max(rs.x, rs.y, rs.z) * .5 + pad;
+      const rr = { front: Math.max(rs.x, rs.y), top: Math.max(rs.x, rs.z), right: Math.max(rs.z, rs.y) }[view] * .5 + pad * .5;
+      D.details.push({ L: L[D.details.length], label: d.label, reg, view, C: CD, hide, cut, c: lc, rad: rr, fromSec: !!d.sec });
+      if (D.details.length >= 3) break;
+    }
+    D.N = P.rows.length > 44 ? 4 : 3;
+    return D;
   }
   function drawSheets(id) {
-    const S = src(id); if (!S) { ST[id].sheets = null; return; }
-    const title = id === 'jansen' ? 'Jansen linkage leg' : MODEL[id].title;
-    const st = ST[id]; st.svg = [sheetGA(S, title), sheetEx(S, title)]; st.sheets = true; showSheet(id, st.sheetI || 0);
+    const st = ST[id], D = plan(id); if (!D) { st.sheets = null; return; }
+    st.svg = [sheetGA(D), sheetSec(D), sheetEx(D)]; if (D.N > 3) st.svg.push(sheetPL(D));
+    const tabs = document.getElementById(`gx-${id}-tabs`);
+    if (tabs) tabs.innerHTML = ['General arrangement', 'Section and details', 'Exploded assembly', 'Parts list'].slice(0, st.svg.length)
+      .map((t, i) => `<button type="button" role="tab" aria-selected="${i === (st.sheetI || 0)}" data-gxs="${id}" data-s="${i}">0${i + 1} · ${t}</button>`).join('');
+    st.sheets = true; showSheet(id, Math.min(st.sheetI || 0, st.svg.length - 1));
   }
   function showSheet(id, i) { const st = ST[id] = ST[id] || {}; st.sheetI = i; if (!st.svg) return; document.getElementById(`gx-${id}-sheet`).innerHTML = st.svg[i]; }
-  return { secs, keys, attach, after, debug: ST };
+  return { secs, keys, attach, after, debug: ST, _plan: plan };
 })();
+window.__GEN = GEN;
 
 // the Charpy project's own stops: run a test, build it, reference documents
 const CHARPY_SECS = `
